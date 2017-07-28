@@ -1,0 +1,18 @@
+{
+  "presets": [
+    ["env", {
+      "useBuiltIns": true,
+      "loose": true
+    }]
+  ],
+  "plugins": [
+    "transform-class-properties",
+    "transform-object-rest-spread",
+    "transform-flow-strip-types",
+    ["transform-runtime", {
+      "polyfill": false,
+      "regenerator": true
+    }],
+    ["transform-react-jsx", { "pragma": "h" }]
+  ]
+}

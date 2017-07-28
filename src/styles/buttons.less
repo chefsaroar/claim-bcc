@@ -1,0 +1,36 @@
+button {
+    display: inline-block;
+    font-weight: normal;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    padding: 6px 12px;
+    font-size: 14px;
+    line-height: 1.42857143;
+    border-radius: 0;
+    user-select: none;
+    transition: all 0.15s ease 0s;
+    color: white;
+    background-color: @color_green;
+
+    &:hover {
+        color: #333;
+        box-shadow: 0 0 24px rgba(0, 0, 0, 0.15);
+    }
+}
+
+button:disabled,
+button[disabled] {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+
+.btn_primary {
+    
+    &:hover {
+        color: #fff;
+    }
+}

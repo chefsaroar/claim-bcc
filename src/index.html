@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>TREZOR Convert BTC to BCC</title>
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta name="author" content="TREZOR info@trezor.io" />
+    <meta name="robots" content="index, follow" />
+    <meta name="title" content="TREZOR Connect" />
+    <meta name="theme-color" content="#ffffff" />
+    <!-- TODO  tw, fb-->
+    <meta name="twitter:card" content="summary" />
+</head>
+<body>
+    <div id="app"></div>
+    <!-- <script type="text/javascript" src="https://connect.trezor.io/2/connect.js"></script> -->
+    <script type="text/javascript">
+        window.TREZOR_POPUP_PATH = 'http://localhost/';
+        window.TREZOR_POPUP_URL = 'http://localhost/popup/popup.html';
+        window.TREZOR_POPUP_ORIGIN = 'http://localhost';
+    </script>
+    <script type="text/javascript" src="http://localhost/connect.js"></script>
+</body>
+</html>
