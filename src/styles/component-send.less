@@ -115,14 +115,12 @@
 
         span {
             margin-left: 15px;
-            font-size: .8em;
-            color: @color_light_grey;
-            opacity: .5;
+            font-size: 12px;
+            color: @color_hint_grey;
 
             &.address-input {
                 position: relative;
                 margin: 0;
-                opacity: 1;
                 &:after {
                     .glyphicon-trezor;
                     position: absolute;
@@ -132,36 +130,124 @@
                     top: 0;
                     right: 4px;
                 }
+                // set trezor address button
+                button {
+                    display: none;
+                    position: absolute;
+                    right: 0;
+                    top: 100%;
+                    margin-top: 12px;
 
-                
+                    span {
+                        color: @color_white;
+                        margin: 0;
+                        &:before {
+                            .glyphicon-trezor;
+                            vertical-align: -2px;
+                            padding-right: 8px;
+                        }
+                    }
+                }
             }
 
             &.address-hint {
                 display: block;
                 margin-left: 17%;
-                margin-top: 4px;
+                margin-top: 8px;
             }
-            &.foreign-address {
-                color: @color_red;
-                opacity: 1;
+            
+            &.amount-hint {
+                position: relative;
+                display: none;
+                &:before {
+                    .glyphicon-info;
+                    vertical-align: -2px;
+                    margin-right: 8px;
+                    font-size: 14px;
+                }
+                &.warning {
+                    display: inline;
+                }
+                div {
+                    display: inline-block;
+                    margin-left: 10px;
+                }
+                .amount-tooltip {
+                    position: absolute;
+                    display: none;
+                    z-index: 1;
+                    left: 100%;
+                    top: -10px;
+                    width: 100%;
+                    background-color: rgba(0, 0, 0, 0.7);
+                    font-size: 1em;
+                    color: @color_white;
+                    border-radius: 6px;
+                    padding: 10px;
+                }
+                &:hover {
+                    .amount-tooltip {
+                        display: block;
+                    }
+                }
             }
 
             
         }
 
+        // Claim button
         button {
             margin-left: 17%;
         }
-        
 
+        // Address is not a TREZOR wallet, but still correct format
+        &.foreign-address {
+            .address-input {
+                &:after {
+                    .glyphicon-checkmark;
+                    padding-right: 18px;
+                }
+            }
+            .address-hint {
+                color: orange;
+            }
+        }
+        
+        // Addres is not valid
         &.not-valid {
             .address-input {
                 input {
                     border-color: @color_red;
                 }
                 &:after {
-                    content: '\2716';
+                    .glyphicon-cross;
                     color: @color_red;
+                    font-size: 11px;
+                    padding-top: 2px;
+                }
+            }
+
+            .address-hint {
+                color: @color_red;
+            }
+        }
+
+        // common
+        &.foreign-address, 
+        &.not-valid {
+            .address-input {
+                button {
+                    display: block;
+                }
+            }
+            .address-hint {
+                margin-top: 10px;
+                margin-bottom: 4px;
+                &:before {
+                    .glyphicon-warning;
+                    vertical-align: -1px;
+                    margin-right: 8px;
+                    font-size: 14px;
                 }
             }
         }

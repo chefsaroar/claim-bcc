@@ -12,11 +12,10 @@ button {
     border-radius: 0;
     user-select: none;
     transition: all 0.15s ease 0s;
-    color: white;
+    color: @color_white;
     background-color: @color_green;
 
     &:hover {
-        color: #333;
         box-shadow: 0 0 24px rgba(0, 0, 0, 0.15);
     }
 }
@@ -25,12 +24,4 @@ button:disabled,
 button[disabled] {
     pointer-events: none;
     opacity: 0.6;
-}
-
-
-.btn_primary {
-    
-    &:hover {
-        color: #fff;
-    }
 }

@@ -20,41 +20,38 @@
 
 
 @font-face {
-    font-family: 'trezorfont';
-    src: url('../fonts/trezorfont.eot') format('embedded-opentype'),
-    url('../fonts/trezorfont.woff') format('woff'),
-    url('../fonts/trezorfont.ttf')  format('truetype'),
-    url('../fonts/trezorfont.svg#icomoon') format('svg');
+    font-family: 'glyphiconsfont';
+    src: url('../fonts/glyphicons.eot') format('embedded-opentype'),
+    url('../fonts/glyphicons.woff') format('woff'),
+    url('../fonts/glyphicons.ttf')  format('truetype'),
+    url('../fonts/glyphicons.svg#icomoon') format('svg');
 }
 
 
 
 .glyphicon-base() {
     display: inline-block;
-    font-family: "trezorfont";
+    font-family: 'glyphiconsfont';
     font-style: normal;
     font-weight: normal;
     line-height: 1;
 }
 
-.glyphicon-connect-trezor {
+.glyphicon-trezor {
     .glyphicon-base();
-    content: "\2009";
+    content: "\5f";
+    padding-top: 1px;
+    font-size: 14px;
 }
 
-.glyphicon-bug {
+.glyphicon-info {
     .glyphicon-base();
-    content: "\f188";
+    content: "\ea0c";
 }
 
 .glyphicon-warning {
     .glyphicon-base();
     content: "\ea07";
-}
-
-.glyphicon-trezor {
-    .glyphicon-base();
-    content: "\5f";
 }
 
 .glyphicon-cross {
@@ -65,4 +62,14 @@
 .glyphicon-checkmark {
     .glyphicon-base();
     content: "\ea10";
+}
+
+.glyphicon-up {
+    .glyphicon-base();
+    content: "\ea41";
+}
+
+.glyphicon-down {
+    .glyphicon-base();
+    content: "\ea43";
 }

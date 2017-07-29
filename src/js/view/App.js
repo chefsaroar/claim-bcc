@@ -1,7 +1,7 @@
 import { h, Component } from 'preact';
 import HeaderComponent from './HeaderComponent';
-import Start from './StartComponent';
-import Accounts from './SendComponent';
+import Home from './HomeComponent';
+import Send from './SendComponent';
 
 import { getBitcoinCashPathFromIndex, getSplitBlock } from '../utils/utils';
 
@@ -11,15 +11,9 @@ export default class App extends Component {
     constructor(props) {
         super(props);
 
-        getSplitBlock().then(json => {
-            console.log("JSON!", this, json.block)
-            this.setState({
-                splitBlockHeight: json.block
-            });
-
-        })
-
         this.state = {
+            block: 0,
+            activeAccount: 0,
             // accounts: [ 
             //     { name: 'Account #1', 
             //       id: 0,
@@ -34,9 +28,15 @@ export default class App extends Component {
             //     { name: "High", maxFee: 200 },
             //     { name: "Normal", maxFee: 100 }
             // ],
-            activeAccount: 0,
-            loading: false
+            success: null,
+            error: null
         };
+
+        getSplitBlock().then(json => {
+            this.setState({
+                block: json.block
+            });
+        })
     }
 
     getAccounts() {
@@ -47,6 +47,8 @@ export default class App extends Component {
                     if(account.addressId > 0 && account.balance > 0){
                         account.name = `Account #${(account.id + 1)}`;
                         accounts.push(account);
+
+                        // TODO: filter unspents
                     }
                 }
                 this.setState({ 
@@ -133,16 +135,23 @@ export default class App extends Component {
 
     render(props) {
 
-        let view = this.state.accounts === null ||  this.state.accounts === undefined ? 
-            <Start click={ this.getAccounts.bind(this) } { ...this.state } /> : 
-            <Accounts 
-                send={ this.signTX.bind(this) } 
-                selectAccount={ this.selectAccount.bind(this) }
-                { ...this.state } />;
-
-        // <button onClick={ () => { this.getAccounts() } }>Connect with trezor</button>
-        //         <br/>
-        //         <button onClick={ () => { this.signTX() } }>SEND</button>
+        let view;
+        if (this.state.accounts === undefined) {
+            view = <Home 
+                        click={ this.getAccounts.bind(this) }
+                        block={ this.state.block }
+                         /> 
+        } else {
+            const { accounts, fees, activeAccount, success, error } = this.state;
+            view = <Send 
+                        send={ this.signTX.bind(this) } 
+                        selectAccount={ this.selectAccount.bind(this) }
+                        accounts= { accounts }
+                        fees={ fees }
+                        account={ accounts[activeAccount] }
+                        success={ success }
+                        error={ error } />;
+        }
 
         return (
             <div className="container">
