@@ -1,7 +1,8 @@
 const HD_HARDENED: number = 0x80000000;
 
 export function satoshi2btc(s: number): number {
-    return (s / 100000000);
+    //return (s / 100000000).toString();
+    return Number(s / 100000000).toFixed(10).replace(/\.?0+$/,"");
 }
 
 export function getSplitBlock(): number {

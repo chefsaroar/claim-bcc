@@ -17,8 +17,8 @@ export default class App extends Component {
             // accounts: [ 
             //     { name: 'Account #1', 
             //       id: 0,
-            //       balance: 0,
-            //       availableBCC: 0,
+            //       balance: 20000000,
+            //       availableBCH: 200000,
             //       unspents: [1],
             //       bitcoinCashAddress: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhT',
             //       //transactionSuccess: { hashHex: 'f271a4ebcb53cba53c2b6101699d8c6789ce022acd25805aa9dd1b2306d2dcc5' } 
@@ -47,8 +47,13 @@ export default class App extends Component {
                     // filter empty accounts (except for first account)
                     if(accounts.length < 1 || (account.addressId > 0 && account.balance > 0)) {
                         account.name = `Account #${(account.id + 1)}`;
+                        account.availableBCH = 0; // TODO
                         
                         // TODO: filter unspents (block nr)
+                        for(let unspent of account.unspents){
+                            console.log("Unspent", unspent);
+                            account.availableBCH += (unspent.value) / 2;
+                        }
 
                         // find claim transaction
                         let hashHex = window.localStorage.getItem(account.bitcoinCashAddress);
@@ -124,7 +129,8 @@ export default class App extends Component {
         let hashHex = '1234abcd';
         let index = this.state.activeAccount;
         let newAccounts = [ ...this.state.accounts ];
-        newAccounts[index].balance -= amount;
+        //newAccounts[index].balance -= amount;
+        newAccounts[index].availableBCH = 0;
         newAccounts[index].transactionSuccess = {
             url: 'google.com',
             hashHex: hashHex

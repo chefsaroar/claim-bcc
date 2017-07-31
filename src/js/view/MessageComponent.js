@@ -16,7 +16,7 @@ export default class MessageComponent extends Component {
                 </article>
             );
         }else{
-            let url = `https://bcc-bitcore2.trezor.io/tx/?__TODO=${props.success.hashHex}`;
+            let url = `https://bch-bitcore2.trezor.io/tx/?__TODO=${props.success.hashHex}`;
             return (
                 <article>
                     <p>

@@ -63,16 +63,6 @@
             font-size: 14px;
             color: @color_hint_grey;
             
-            &:before {
-                .glyphicon-warning;
-                vertical-align: -1px;
-                margin-right: 8px;
-                font-size: 14px;
-            }
-
-            &.warning {
-                
-            }
         }
 
         label {
@@ -190,7 +180,7 @@
                 }
             }
             .address-hint {
-                color: orange;
+                color: @color_orange;
             }
         }
         
@@ -223,6 +213,20 @@
 
             .empty-account {
                 display: block;
+            }
+
+            &.warning {
+                .empty-account {
+                    color: @color_orange;
+                    p {
+                        &:before {
+                            .glyphicon-warning;
+                            vertical-align: -1px;
+                            margin-right: 8px;
+                            font-size: 14px;
+                        }
+                    }
+                }
             }
         }
 

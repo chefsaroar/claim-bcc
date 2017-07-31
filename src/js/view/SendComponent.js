@@ -5,7 +5,7 @@ import Message from './MessageComponent';
 
 const initalState = {
     accountId: -1,
-    advanced: true,
+    advanced: false,
     address: null,
     addressIsValid: true,
     selectedFee: 1,
@@ -36,7 +36,7 @@ export default class SendComponent extends Component {
     getAccountState(props, state) {
         return {
             accountId: props.account.id,
-            advanced: props.success ? false : state.advanced,
+            advanced: state.advanced,
             address: props.account.bitcoinCashAddress,
             selectedFee: state.selectedFee,
             fee: calculateFee(props.account.unspents.length, 1, props.fees[ state.selectedFee ].maxFee),
@@ -102,7 +102,7 @@ export default class SendComponent extends Component {
 
         // TODO
         //const inputs = getValidInputs(account.unspents);
-        const amountToClaim = account.balance - fee; // TODO: calculate proper amount depending on split block
+        const amountToClaim = account.availableBCH - fee; // TODO: calculate proper amount depending on split block
         const amountToClaimBTC = satoshi2btc(amountToClaim); 
 
         // css classNames and labels
@@ -110,7 +110,7 @@ export default class SendComponent extends Component {
         const advancedSettingsButtonClassName = `show-advanced-settings ${ advanced ? 'opened' : '' }`;
         const advancedSettingsButtonLabel = advanced ? 'Hide advanced settings' : 'Show advanced settings';
         const advancedSettingsClassName = `advanced-settings ${ advanced ? 'opened' : '' }`;
-        const amountHintClassName = `amount-hint ${ true ? 'warning' : '' }`;
+        const amountHintClassName = `amount-hint ${ (account.balance !== account.availableBCH) ? 'warning' : '' }`;
 
         
 
@@ -128,15 +128,15 @@ export default class SendComponent extends Component {
         }
 
         // TODO: disable button if amount <= 0
-        // balance === 0 || availableBCC === 0
+        // balance === 0 || availableBCH === 0
         var emptyAccountHint = "You don't have enought founds in your account.";
-        if (account.availableBCC === 0) {
+        if (account.availableBCH === 0) {
             formClassName = 'disabled';
             if(success) {
-                emptyAccountHint = "You already claimed.";
+                emptyAccountHint = "You have already claimed.";
             }else if (account.balance === 0) {
                 formClassName = 'disabled warning';
-                emptyAccountHint = "You don't have enought founds in your account."
+                emptyAccountHint = "You don't have enough funds in your account."
             } else {
                 formClassName = 'disabled warning not-empty';
                 emptyAccountHint = "Your BTC was received after the chain-split.";
@@ -185,10 +185,10 @@ export default class SendComponent extends Component {
                             <label>Amount</label>
                             <input type="text" value={ amountToClaimBTC } disabled />
                             <span className={ amountHintClassName }>
-                                You can claim 0.003 BCC.
+                                You can claim { satoshi2btc(account.availableBCH) } BCH
                                 <div className="amount-tooltip">
                                     If the number does not match your BTC account balance, then you probably received additional BTC after the chain-split.<br/>
-                                    These cannot be claimed as BCC.
+                                    These cannot be claimed as BCH.
                                 </div>
                             </span>
                         </p>
@@ -197,13 +197,13 @@ export default class SendComponent extends Component {
                             <select value={ selectedFee } onChange={ () => this.changeFee(event) }>
                                 { feeSelect }
                             </select>
-                            <span>{ satoshi2btc(fee) } BBC</span>
+                            <span>{ satoshi2btc(fee) } BCH</span>
                         </p>
                     </div>
 
                     <button 
                         onClick={ () => props.send(account, amountToClaim) }
-                        disabled={ !addressIsValid }>Claim { amountToClaimBTC } BBC</button>
+                        disabled={ !addressIsValid }>Claim { amountToClaimBTC } BCH</button>
 
                     <div className="empty-account">
                         <p>
