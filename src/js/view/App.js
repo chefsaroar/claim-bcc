@@ -130,11 +130,10 @@ export default class App extends Component {
 
         TrezorConnect.signTx(inputs, outputs, response => {
             if(response.status){
-                // TrezorConnect.pushTransaction(response.serialized_tx, pushResult => {
-                //     if (pushResult.success) {
-                //         // update cached values for account
-                        //let hashHex = pushResult.txid;
-                        let hashHex = response.serialized_tx;
+                TrezorConnect.pushTransaction(response.serialized_tx, pushResult => {
+                    if (pushResult.success) {
+                        // update cached values for account
+                        let hashHex = pushResult.txid;
                         let index = this.state.activeAccount;
                         let newAccounts = [ ...this.state.accounts ];
                         newAccounts[index].availableBCH = 0;
@@ -149,13 +148,13 @@ export default class App extends Component {
                             accounts: newAccounts,
                             error: null
                         });
-                //     } else {
-                //         window.scrollTo(0, 0);
-                //         this.setState({
-                //             error: pushResult.error
-                //         });
-                //     }
-                // });
+                    } else {
+                        window.scrollTo(0, 0);
+                        this.setState({
+                            error: pushResult.error
+                        });
+                    }
+                });
                 
             }else{
                 window.scrollTo(0, 0);
@@ -167,7 +166,7 @@ export default class App extends Component {
 
 
 
-        
+
         // TODO sing and push TX
         // simulate error
         // this.setState({
