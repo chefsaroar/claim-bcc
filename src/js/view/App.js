@@ -5,7 +5,7 @@ import Send from './SendComponent';
 
 import { getBitcoinCashPathFromIndex, getSplitBlock } from '../utils/utils';
 
-const TREZOR_FIRMWARE = '1.4.0';
+const TREZOR_FIRMWARE = '1.5.1';
 
 export default class App extends Component {
 
