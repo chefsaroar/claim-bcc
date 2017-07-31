@@ -196,16 +196,17 @@ export default class SendComponent extends Component {
                             <span>{ satoshi2btc(fee) } BCH</span>
                         </p>
                     </div>
-
-                    <button 
-                        onClick={ () => props.send(account, amountToClaim) }
-                        disabled={ !addressIsValid }>Claim { amountToClaimBTC } BCH</button>
+                    <p className="claim-button">
+                        <button 
+                            onClick={ () => props.send(account, amountToClaim) }
+                            disabled={ !addressIsValid }>Claim { amountToClaimBTC } BCH</button>
+                        <span>Your funds will be deposed in TREZOR Bitcoin Cash {account.name}</span>
+                    </p>
 
                     <div className="empty-account">
                         <p>
                             { emptyAccountHint }
                         </p>
-
                     </div>
                 </fieldset>
             </section>

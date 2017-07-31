@@ -22,7 +22,7 @@ export default class App extends Component {
             //       availableBCH: 30000,
             //       unspents: [1],
             //       bitcoinCashAddress: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhT',
-            //       //transactionSuccess: { hashHex: 'ABCD1234' } 
+            //       transactionSuccess: { hashHex: '1924a52b1f97797dc1c072895d6441b96f28b8b4637bd0130eab3d32ef2be17e' } 
             //     },
             //     { name: 'Account #2', id: 1, balance: 0, unspents: [] } 
             // ],
@@ -44,34 +44,41 @@ export default class App extends Component {
         TrezorConnect.claimBitcoinCashAccountsInfo(response => {
             if(response.success){
                 let accounts = [];
-                for(let account of response.accounts){
+                let accountsLen = response.accounts.length - 1;
+                for(let [index, account] of response.accounts.entries()){
                     // filter empty accounts (except for first account)
-                    if(accounts.length < 1 || (account.addressId > 0 && account.balance > 0)) {
-                        account.name = `Account #${(account.id + 1)}`;
-                        account.availableBCH = 0;
-                        
-                        // filter available unspents
-                        let availableUnspents = [];
-                        for(let unspent of account.unspents){
-                            if(unspent.height <= this.state.block){
-                                // TODO: check unspent in explorer
-                                account.availableBCH += unspent.value;
-                                availableUnspents.push(unspent);
-                            }
-                        }
-                        account.unspents = availableUnspents;
 
-                        // find claimed transaction in local storage
-                        let hashHex = window.localStorage.getItem(account.bitcoinCashAddress);
-                        if(hashHex){
-                            account.transactionSuccess = {
-                                hashHex: hashHex
-                            }
-                        }
-
-                        accounts.push(account);
-
+                    
+                    // ignore last empty account
+                    if(index > 0 && index === accountsLen && account.addressId === 0 && account.balance === 0 ) {
+                        continue;
                     }
+                    
+                    //if(accounts.length >  || (account.addressId > 0 && account.balance > 0)) {
+                    account.name = `Account #${(account.id + 1)}`;
+                    account.availableBCH = 0;
+                    
+                    // filter available unspents
+                    let availableUnspents = [];
+                    for(let unspent of account.unspents){
+                        if(unspent.height <= this.state.block){
+                            // TODO: check unspent in explorer
+                            account.availableBCH += unspent.value;
+                            availableUnspents.push(unspent);
+                        }
+                    }
+                    account.unspents = availableUnspents;
+
+                    // find claimed transaction in local storage
+                    let hashHex = window.localStorage.getItem(account.bitcoinCashAddress);
+                    if(hashHex){
+                        account.transactionSuccess = {
+                            hashHex: hashHex
+                        }
+                    }
+
+                    accounts.push(account);
+
                 }
                 this.setState({ 
                     accounts: accounts,
@@ -121,43 +128,35 @@ export default class App extends Component {
             }
         ];
 
-        // TODO sing and push TX
-        
-        this.setState({
-            error: "Cancelled by user"
-        });
-        
-
-        return;
-
-        console.log("SIGNTX params", inputs, outputs);
-
-        // success: update account
-        let hashHex = '1234abcd';
-        let index = this.state.activeAccount;
-        let newAccounts = [ ...this.state.accounts ];
-        //newAccounts[index].balance -= amount;
-        newAccounts[index].availableBCH = 0;
-        newAccounts[index].transactionSuccess = {
-            url: 'google.com',
-            hashHex: hashHex
-        }
-
-        window.localStorage.setItem(account.bitcoinCashAddress, hashHex);
-
-        this.setState({
-            accounts: newAccounts,
-            error: null
-        });
-
-        return;
-
         TrezorConnect.signTx(inputs, outputs, response => {
-            console.log("SIGNTX", response);
             if(response.status){
-                this.setState({
-                    success: response
-                });
+                // TrezorConnect.pushTransaction(response.serialized_tx, pushResult => {
+                //     if (pushResult.success) {
+                //         // update cached values for account
+                        //let hashHex = pushResult.txid;
+                        let hashHex = response.serialized_tx;
+                        let index = this.state.activeAccount;
+                        let newAccounts = [ ...this.state.accounts ];
+                        newAccounts[index].availableBCH = 0;
+                        newAccounts[index].transactionSuccess = {
+                            hashHex: hashHex
+                        }
+                        // store tx in local storage
+                        window.localStorage.setItem(account.bitcoinCashAddress, hashHex);
+
+                        // update view
+                        this.setState({
+                            accounts: newAccounts,
+                            error: null
+                        });
+                //     } else {
+                //         window.scrollTo(0, 0);
+                //         this.setState({
+                //             error: pushResult.error
+                //         });
+                //     }
+                // });
+                
             }else{
                 window.scrollTo(0, 0);
                 this.setState({
@@ -165,6 +164,35 @@ export default class App extends Component {
                 });
             }
         }, TREZOR_FIRMWARE);
+
+
+
+        
+        // TODO sing and push TX
+        // simulate error
+        // this.setState({
+        //     error: "Cancelled by user"
+        // });
+        // return;
+
+
+        // simulate success: update account
+        // let hashHex = '1234abcd';
+        // let index = this.state.activeAccount;
+        // let newAccounts = [ ...this.state.accounts ];
+        // newAccounts[index].availableBCH = 0;
+        // newAccounts[index].transactionSuccess = {
+        //     url: 'google.com',
+        //     hashHex: hashHex
+        // }
+
+        // window.localStorage.setItem(account.bitcoinCashAddress, hashHex);
+
+        // this.setState({
+        //     accounts: newAccounts,
+        //     error: null
+        // });
+        // return;
     }
 
     render(props) {
