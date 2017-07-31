@@ -19,7 +19,6 @@ app.use(require('webpack-dev-middleware')(compiler, {
 app.use(require('webpack-hot-middleware')(compiler));
 
 app.get('*', function(req, res) {
-    console.log("SEND", req.params[0])
     // if(req.url === '/config.json'){
 
     // }

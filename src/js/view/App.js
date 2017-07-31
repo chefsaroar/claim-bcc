@@ -5,6 +5,7 @@ import Send from './SendComponent';
 
 import { getBitcoinCashPathFromIndex, getSplitBlock } from '../utils/utils';
 
+const TREZOR_FIRMWARE = '1.4.0';
 
 export default class App extends Component {
 
@@ -18,10 +19,10 @@ export default class App extends Component {
             //     { name: 'Account #1', 
             //       id: 0,
             //       balance: 20000000,
-            //       availableBCH: 200000,
+            //       availableBCH: 30000,
             //       unspents: [1],
             //       bitcoinCashAddress: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhT',
-            //       //transactionSuccess: { hashHex: 'f271a4ebcb53cba53c2b6101699d8c6789ce022acd25805aa9dd1b2306d2dcc5' } 
+            //       //transactionSuccess: { hashHex: 'ABCD1234' } 
             //     },
             //     { name: 'Account #2', id: 1, balance: 0, unspents: [] } 
             // ],
@@ -47,15 +48,20 @@ export default class App extends Component {
                     // filter empty accounts (except for first account)
                     if(accounts.length < 1 || (account.addressId > 0 && account.balance > 0)) {
                         account.name = `Account #${(account.id + 1)}`;
-                        account.availableBCH = 0; // TODO
+                        account.availableBCH = 0;
                         
-                        // TODO: filter unspents (block nr)
+                        // filter available unspents
+                        let availableUnspents = [];
                         for(let unspent of account.unspents){
-                            console.log("Unspent", unspent);
-                            account.availableBCH += (unspent.value) / 2;
+                            if(unspent.height <= this.state.block){
+                                // TODO: check unspent in explorer
+                                account.availableBCH += unspent.value;
+                                availableUnspents.push(unspent);
+                            }
                         }
+                        account.unspents = availableUnspents;
 
-                        // find claim transaction
+                        // find claimed transaction in local storage
                         let hashHex = window.localStorage.getItem(account.bitcoinCashAddress);
                         if(hashHex){
                             account.transactionSuccess = {
@@ -78,7 +84,7 @@ export default class App extends Component {
                     error: response.error
                 });
             }
-        });
+        }, TREZOR_FIRMWARE);
     }
 
     selectAccount(index: number): void {
@@ -109,19 +115,20 @@ export default class App extends Component {
 
         let outputs = [
             {
-                //address_n: getBitcoinCashPathFromIndex(account.id),
                 address_n: account.bitcoinCashPath,
                 amount: amount,
                 script_type: 'PAYTOADDRESS'
             }
         ];
 
+        // TODO sing and push TX
+        
+        this.setState({
+            error: "Cancelled by user"
+        });
+        
 
-        // this.setState({
-        //     error: "some error"
-        // });
-
-        // return;
+        return;
 
         console.log("SIGNTX params", inputs, outputs);
 
@@ -157,43 +164,7 @@ export default class App extends Component {
                     error: response.error
                 });
             }
-        });
-
-
-        // var hidden = '';
-        // var visual = '';
-        // TrezorConnect.requestLogin(null, hidden, visual, response => {
-        //     if(response.success){
-        //         let list = this.state.accounts;
-        //         let index = list.indexOf(account);
-        //         list[index].balance = '0 BTC';
-        //         list[index].tx = {
-        //             id: '1234557asdq3esdc24asd3424sdad',
-        //             url: ''
-        //         }
-        //         this.setState({
-        //             accounts: list
-        //         });
-        //     }            
-        // });
-
-        // let inputs = [{
-        //      address_n: [44 | 0x80000000, 0 | 0x80000000, 2 | 0x80000000, 1, 0],
-        //      prev_index: 0,
-        //      prev_hash: 'b035d89d4543ce5713c553d69431698116a822c57c03ddacf3f04b763d1999ac'
-        // }];
-
-        
-        // let outputs = [
-        //     {
-        //      address_n: [44 | 0x80000000, 0 | 0x80000000, 2 | 0x80000000, 1, 1],
-        //      amount: 3181747,
-        //      script_type: 'PAYTOADDRESS'
-        //  }, {
-        //      address: '17oeY71zms7LJkfNDXMUwYV4HHRmwJnm9Z',
-        //      amount: 200000,
-        //      script_type: 'PAYTOADDRESS'
-        // }];
+        }, TREZOR_FIRMWARE);
     }
 
     render(props) {
@@ -208,7 +179,6 @@ export default class App extends Component {
                          /> 
         } else {
             const { accounts, fees, activeAccount, success, error } = this.state;
-            console.log("ACC", accounts)
             view = <Send 
                         // callbacks
                         send={ this.signTX.bind(this) } 

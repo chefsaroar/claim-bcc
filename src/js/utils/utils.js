@@ -12,19 +12,18 @@ export function getSplitBlock(): number {
             return response.json();
         }
         throw new TypeError("Not a JSON");
-    }).catch(function(error) { console.log(error); });
+    }).catch(function(error) { console.error(error); });
 }
 
 export function getValidInputs(inputs: Array<Object>): Array<Object> {
     let validInputs = [];
-    // TODO: find unspents before block number
     for(let input of inputs){
-        console.log("input", input);
+    
     }
 }
 
 export function calculateFee(inputs: number, outputs: number, feePerByte: number): number {    
-    let inputFee = (inputs * 149 + outputs * 35) * feePerByte;
+    let inputFee = (inputs * 149 + outputs * 35 + 10) * feePerByte;
     return inputFee;
 }
 

@@ -78,7 +78,6 @@ export default class SendComponent extends Component {
             advanced: !this.state.advanced
         });
     }
-
     
 
     render(props) {
@@ -100,9 +99,7 @@ export default class SendComponent extends Component {
             <option value={index}>{ fee.name }</option>
         );
 
-        // TODO
-        //const inputs = getValidInputs(account.unspents);
-        const amountToClaim = account.availableBCH - fee; // TODO: calculate proper amount depending on split block
+        const amountToClaim = account.availableBCH - fee;
         const amountToClaimBTC = satoshi2btc(amountToClaim); 
 
         // css classNames and labels
@@ -127,8 +124,7 @@ export default class SendComponent extends Component {
             addressHint = `Bitcoin Cash ${account.name} in TREZOR`;
         }
 
-        // TODO: disable button if amount <= 0
-        // balance === 0 || availableBCH === 0
+        // disable form if amount <= 0 or availableBCH == 0
         var emptyAccountHint = "You don't have enought founds in your account.";
         if (account.availableBCH === 0) {
             formClassName = 'disabled';
@@ -145,7 +141,7 @@ export default class SendComponent extends Component {
         
         return (
             <section className="component-send">
-                <h3>Send Bitcoin Cash to your wallet</h3>
+                <h3>Claim Bitcoin Cash to your wallet</h3>
 
                 <Message 
                     header="Failed to send transaction."
@@ -162,7 +158,7 @@ export default class SendComponent extends Component {
                             { accountSelect }
                         </select>
                         <span>
-                            Balance: { satoshi2btc(account.balance) } BTC
+                            Balance: { satoshi2btc(account.balance) } BTC / { satoshi2btc(account.availableBCH) } BCH
                         </span>
                     </p>
                     <div className={ advancedSettingsButtonClassName }>
