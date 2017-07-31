@@ -5,8 +5,7 @@ export function satoshi2btc(s: number): number {
 }
 
 export function getSplitBlock(): number {
-    console.log("get split block!")
-    return fetch('config.json').then(response => {
+    return fetch(`config.json?r=${ Math.random() }`).then(response => {
         var contentType = response.headers.get("content-type");
         if(contentType && contentType.includes("application/json")) {
             return response.json();

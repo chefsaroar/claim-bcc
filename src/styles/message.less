@@ -1,0 +1,42 @@
+// MessageComponent
+article {
+    position: relative;
+    border-radius: 2px;
+    border: 1px solid @color_green;
+    padding: 15px;
+    background: @color_white;
+    h4 {
+        font-size: 18px;
+        font-weight: 500;
+        line-height: 1.1;
+        padding-bottom: 5px;
+        color: @color_red;
+    }
+
+    button {
+        position: absolute;
+        top: 6px;
+        right: 0;
+        color: @color_grey;
+        font-size: 21px;
+        font-weight: bold;
+        line-height: 1;
+        text-shadow: 0 1px 0 @color_white;
+        background: transparent;
+        &:hover {
+            box-shadow: none;
+        }
+    }
+
+    a {
+        color: @color_green;
+    }
+
+    &.error {
+        border-color: @color_red;
+        background: transparent;
+        a { 
+            color: @color_red;
+        }
+    }
+}

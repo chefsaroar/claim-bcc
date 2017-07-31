@@ -4,6 +4,7 @@
     min-width: 750px;
     margin: 0 auto;
     
+    // Advanced settings button
     .show-advanced-settings {
         padding-left: 17%;
         padding-bottom: 4px;
@@ -34,43 +35,7 @@
         }
     }
 
-    article {
-        position: relative;
-        border-radius: 2px;
-        border: 1px solid @color_red;
-        padding: 15px;
-
-        h3 {
-            color: @color_red;
-        }
-
-        button {
-            position: absolute;
-            top: 0;
-            right: 0;
-            color: @color_grey;
-            font-size: 21px;
-            font-weight: bold;
-            line-height: 1;
-            text-shadow: 0 1px 0 @color_white;
-            background: transparent;
-        }
-
-        span {
-            //color: @color_red;
-        }
-
-        a {
-            color: @color_red;
-            margin-left: 6px;
-            &:after {
-                content: '\276F';
-                display: inline-block;
-                position: relative;
-                padding-left: 3px;
-            }
-        }
-    }
+    
 
     fieldset {
         display: block;
@@ -91,19 +56,35 @@
             }
         }
 
+        .empty-account {
+            display: none;
+            padding-left: 17%;
+            padding-top: 10px;
+            font-size: 14px;
+            color: @color_hint_grey;
+            
+            &:before {
+                .glyphicon-warning;
+                vertical-align: -1px;
+                margin-right: 8px;
+                font-size: 14px;
+            }
+
+            &.warning {
+                
+            }
+        }
+
         label {
             position: relative;
             display: inline-block;
             width: 17%;
-            
             text-align: right;
             padding-top: 7px;
             text-transform: uppercase;
             font-size: 1em;
             font-weight: bold;
             color: #99979c;
-            
-            
             min-height: 1px;
             padding-left: 15px;
             padding-right: 15px;
@@ -229,6 +210,19 @@
 
             .address-hint {
                 color: @color_red;
+            }
+        }
+
+        // form disabled (balance === 0)
+        &.disabled {
+            .show-advanced-settings,
+            .advanced-settings, 
+            button {
+                display: none;
+            }
+
+            .empty-account {
+                display: block;
             }
         }
 

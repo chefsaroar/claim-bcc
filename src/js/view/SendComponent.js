@@ -1,6 +1,7 @@
 import { h, Component } from 'preact';
 import bitcoinjs from 'bitcoinjs-lib';
 import { satoshi2btc, getValidInputs, calculateFee } from '../utils/utils';
+import Message from './MessageComponent';
 
 const initalState = {
     accountId: -1,
@@ -23,19 +24,19 @@ export default class SendComponent extends Component {
 
     // handle account change (component update)
     componentWillReceiveProps(props) {
-        if(props.account.id !== this.state.accountId) {
+        //if(props.account.id !== this.state.accountId) {
             this.setState({
                 ...initalState,
                 ...this.getAccountState(props, this.state)
             });
-        }
+        //}
     }
 
     // set state values on init (constructor) or account change (componentWillReceiveProps)
     getAccountState(props, state) {
         return {
             accountId: props.account.id,
-            advanced: state.advanced,
+            advanced: props.success ? false : state.advanced,
             address: props.account.bitcoinCashAddress,
             selectedFee: state.selectedFee,
             fee: calculateFee(props.account.unspents.length, 1, props.fees[ state.selectedFee ].maxFee),
@@ -87,18 +88,19 @@ export default class SendComponent extends Component {
         // no account is set in state yet, don't render anything...
         if(accountId < 0) return null;
 
-        const account = props.account;
+        const { account, success, error } = props;
 
         // form values
 
         const accountSelect = props.accounts.map((account, index) => 
-            <option value={index}>{ account.name } <span>{ satoshi2btc(account.balance) } BTC</span></option>
+            <option value={index}>{ account.name }</option>
         );
         
         const feeSelect = props.fees.map((fee, index) => 
             <option value={index}>{ fee.name }</option>
         );
 
+        // TODO
         //const inputs = getValidInputs(account.unspents);
         const amountToClaim = account.balance - fee; // TODO: calculate proper amount depending on split block
         const amountToClaimBTC = satoshi2btc(amountToClaim); 
@@ -108,9 +110,11 @@ export default class SendComponent extends Component {
         const advancedSettingsButtonClassName = `show-advanced-settings ${ advanced ? 'opened' : '' }`;
         const advancedSettingsButtonLabel = advanced ? 'Hide advanced settings' : 'Show advanced settings';
         const advancedSettingsClassName = `advanced-settings ${ advanced ? 'opened' : '' }`;
-        //const formClassName = addressIsValid ? '' : 'not-valid';
         const amountHintClassName = `amount-hint ${ true ? 'warning' : '' }`;
 
+        
+
+        // target address validation
         var formClassName = 'valid';
         var addressHint;
         if (!addressIsValid) {
@@ -123,54 +127,53 @@ export default class SendComponent extends Component {
             addressHint = `Bitcoin Cash ${account.name} in TREZOR`;
         }
 
-        // Success view
-        //props.success
-        // Error view
-        //var errorMessage = props.error;
-
-        /*
-        Explorer address: https://bcc-bitcore2.trezor.io/
-        <article>
-                    <button>×</button>
-                    <h4>Failed to send transaction.</h4>
-                    <p>
-                        <span>Error details:</span>
-                        <span>{ errorMessage }</span>
-                    </p>
-                    <p>
-                        <span>If the problem persists, please run our</span>
-                        <a href="">Troubleshooter</a>
-                    </p>
-                </article>*/
-
-
-        /*
-        You can claim XXX BCC.
-        Popup: 
-        */
-
-        
+        // TODO: disable button if amount <= 0
+        // balance === 0 || availableBCC === 0
+        var emptyAccountHint = "You don't have enought founds in your account.";
+        if (account.availableBCC === 0) {
+            formClassName = 'disabled';
+            if(success) {
+                emptyAccountHint = "You already claimed.";
+            }else if (account.balance === 0) {
+                formClassName = 'disabled warning';
+                emptyAccountHint = "You don't have enought founds in your account."
+            } else {
+                formClassName = 'disabled warning not-empty';
+                emptyAccountHint = "Your BTC was received after the chain-split.";
+            }
+        }
         
         return (
             <section className="component-send">
                 <h3>Send Bitcoin Cash to your wallet</h3>
+
+                <Message 
+                    header="Failed to send transaction."
+                    success={ success } 
+                    error={ error }
+                    hideError={ props.hideError } />
                 
                 <fieldset className={ formClassName }>
                     <p>
                         <label>Account</label>
-                        <select value={ account.id } onChange={ () => { props.selectAccount(event.currentTarget.selectedIndex) } }>
+                        <select 
+                            value={ account.id } 
+                            onChange={ () => props.selectAccount(event.currentTarget.selectedIndex) }>
                             { accountSelect }
                         </select>
+                        <span>
+                            Balance: { satoshi2btc(account.balance) } BTC
+                        </span>
                     </p>
                     <div className={ advancedSettingsButtonClassName }>
-                        <a href="#" onClick={ () => { this.toggleAdvanced(event) } }>{ advancedSettingsButtonLabel }</a>
+                        <a href="#" onClick={ () => this.toggleAdvanced(event) }>{ advancedSettingsButtonLabel }</a>
                     </div>
                     <div className={ advancedSettingsClassName }>
                         <p>
                             <label for="address">Address</label>
                             <span className="address-input">
-                                <input id="address" type="text" value={ this.state.address } onInput={ () => { this.onAddressChange(event) } } />
-                                <button onClick={ () => { this.resetAddress() } }>
+                                <input id="address" type="text" value={ this.state.address } onInput={ () => this.onAddressChange(event) } />
+                                <button onClick={ () => this.resetAddress() }>
                                     <span>Set TREZOR address</span>
                                 </button>
                             </span>
@@ -191,16 +194,23 @@ export default class SendComponent extends Component {
                         </p>
                         <p>
                             <label>Fee</label>
-                            <select value={ selectedFee } onChange={ () => { this.changeFee(event) } }>
+                            <select value={ selectedFee } onChange={ () => this.changeFee(event) }>
                                 { feeSelect }
                             </select>
                             <span>{ satoshi2btc(fee) } BBC</span>
                         </p>
                     </div>
+
                     <button 
-                        className="btn_primary"
-                        onClick={ () => { props.send(account, amountToClaim) } }
+                        onClick={ () => props.send(account, amountToClaim) }
                         disabled={ !addressIsValid }>Claim { amountToClaimBTC } BBC</button>
+
+                    <div className="empty-account">
+                        <p>
+                            { emptyAccountHint }
+                        </p>
+
+                    </div>
                 </fieldset>
             </section>
         );

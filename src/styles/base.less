@@ -13,28 +13,6 @@
     -webkit-tap-highlight-color: rgba(0,0,0,0);
 }
 
-a {
-    text-decoration: none;
-}
-
-a:focus {
-    .no-outlines();
-}
-
-button:focus, input:focus {
-    outline: 0;
-}
-
-
-.content-wrapper {
-    width: 1170px;
-    margin: 0 auto;
-    @media (max-width: 1200px) {
-        width: 100%;
-        max-width: 1200px;
-        min-width: 780px;
-    }
-}
 
 
 
@@ -53,10 +31,21 @@ html {
 body {
     min-height: 100%;
     min-width: 727px;
-    background-color: @tio_wanna_white;
+    background-color: @color_wanna_white;
     font-family: @font-default;
 }
 
+a {
+    text-decoration: none;
+}
+
+a:focus {
+    .no-outlines();
+}
+
+button:focus, input:focus {
+    outline: 0;
+}
 
 h3 {
     margin: 0 !important;
@@ -70,7 +59,7 @@ h3 {
 
 // from: https://codepen.io/AmrSubZero/pen/dxpri
 select {
-    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='50px' height='50px'><polyline fill='#ccc' points='46.139,15.518 25.166,36.49 4.193,15.519'/></svg>");
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50px" height="50px"><polyline fill="gainsboro" points="46.139,15.518 25.166,36.49 4.193,15.519"/></svg>');
     background-color: @color_white;
     background-repeat: no-repeat;
     background-position: right 10px top 8px;
@@ -78,7 +67,7 @@ select {
     color: @color_grey;
     padding: 6px 12px;
     width: 250px;
-    font-family: @font-family-monospace-numbers;
+    font-family: @font-family-monospace;
     font-size: 14px;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -98,5 +87,5 @@ input {
     color: @color_grey;
     background-color: @color_white;
     border: 1px solid @color_border_grey;
-    font-family: @font-family-monospace-numbers;
+    font-family: @font-family-monospace;
 }

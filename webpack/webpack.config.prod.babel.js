@@ -5,7 +5,7 @@ import ExtractTextPlugin from 'extract-text-webpack-plugin';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
 
 const extractLess = new ExtractTextPlugin({
-    filename: './css/[name].[contenthash].css',
+    filename: 'css/[name].[contenthash].css',
     disable: process.env.NODE_ENV === 'development2'
 });
 
@@ -14,7 +14,7 @@ module.exports = {
         index: `${SRC}js/index.js`
     },
     output: {
-        filename: '[name].[chunkhash].js',
+        filename: 'js/[name].[chunkhash].js',
         path: BUILD
     },
     module: {
@@ -37,11 +37,11 @@ module.exports = {
             },
             {
                 test: /\.(ttf|eot|svg|woff|woff2)$/,
-                loader: 'file-loader?publicPath=../&name=./fonts/[name].[ext]',
+                loader: 'file-loader?publicPath=../&name=fonts/[name].[ext]',
             },
             {
                 test: /\.(png|gif|jpg)$/,
-                loader: 'file-loader?publicPath=../&name=./images/[name].[ext]',
+                loader: 'file-loader?publicPath=../&name=images/[name].[ext]',
             },
         ]
     },
@@ -64,15 +64,16 @@ module.exports = {
             //{from: `${SRC}/app/robots.txt`},
             { from: `${SRC}images/favicon.ico` },
             { from: `${SRC}images/favicon.png` },
+            { from: `${SRC}config.json` },
             //{ from: `${SRC}images`, to: `${BUILD}images` },
         ]),
-        //new webpack.optimize.OccurrenceOrderPlugin(),
-        //new webpack.NoEmitOnErrorsPlugin(),
-        // new webpack.optimize.UglifyJsPlugin({
-        //     compress: {
-        //         warnings: false,
-        //     }
-        // }),
+        new webpack.optimize.OccurrenceOrderPlugin(),
+        new webpack.NoEmitOnErrorsPlugin(),
+        new webpack.optimize.UglifyJsPlugin({
+            compress: {
+                warnings: false,
+            }
+        }),
         new webpack.DefinePlugin({
             'process.env.NODE_ENV': JSON.stringify('production'),
             PRODUCTION: JSON.stringify(false)

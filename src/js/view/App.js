@@ -17,10 +17,11 @@ export default class App extends Component {
             // accounts: [ 
             //     { name: 'Account #1', 
             //       id: 0,
-            //       balance: 30000, 
+            //       balance: 0,
+            //       availableBCC: 0,
             //       unspents: [1],
-            //       bitcoinCashAddress: 'ABCD',
-            //       tx: { id: '1234557asdq3esdc24asd3424sdad' } 
+            //       bitcoinCashAddress: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhT',
+            //       //transactionSuccess: { hashHex: 'f271a4ebcb53cba53c2b6101699d8c6789ce022acd25805aa9dd1b2306d2dcc5' } 
             //     },
             //     { name: 'Account #2', id: 1, balance: 0, unspents: [] } 
             // ],
@@ -28,8 +29,7 @@ export default class App extends Component {
             //     { name: "High", maxFee: 200 },
             //     { name: "Normal", maxFee: 100 }
             // ],
-            success: null,
-            error: null
+            //error: "some error"
         };
 
         getSplitBlock().then(json => {
@@ -44,16 +44,33 @@ export default class App extends Component {
             if(response.success){
                 let accounts = [];
                 for(let account of response.accounts){
-                    if(account.addressId > 0 && account.balance > 0){
+                    // filter empty accounts (except for first account)
+                    if(accounts.length < 1 || (account.addressId > 0 && account.balance > 0)) {
                         account.name = `Account #${(account.id + 1)}`;
+                        
+                        // TODO: filter unspents (block nr)
+
+                        // find claim transaction
+                        let hashHex = window.localStorage.getItem(account.bitcoinCashAddress);
+                        if(hashHex){
+                            account.transactionSuccess = {
+                                hashHex: hashHex
+                            }
+                        }
+
                         accounts.push(account);
 
-                        // TODO: filter unspents
                     }
                 }
                 this.setState({ 
                     accounts: accounts,
-                    fees: response.fees
+                    fees: response.fees,
+                    error: null
+                });
+            }else{
+                window.scrollTo(0, 0);
+                this.setState({
+                    error: response.error
                 });
             }
         });
@@ -61,8 +78,15 @@ export default class App extends Component {
 
     selectAccount(index: number): void {
         this.setState({
-            activeAccount: index
+            activeAccount: index,
+            error: null
         })
+    }
+
+    hideError():void {
+        this.setState({
+            error: null
+        });
     }
 
     signTX(account: Object, amount: number): void {
@@ -85,14 +109,47 @@ export default class App extends Component {
                 amount: amount,
                 script_type: 'PAYTOADDRESS'
             }
-        ]
+        ];
+
+
+        // this.setState({
+        //     error: "some error"
+        // });
+
+        // return;
 
         console.log("SIGNTX params", inputs, outputs);
+
+        // success: update account
+        let hashHex = '1234abcd';
+        let index = this.state.activeAccount;
+        let newAccounts = [ ...this.state.accounts ];
+        newAccounts[index].balance -= amount;
+        newAccounts[index].transactionSuccess = {
+            url: 'google.com',
+            hashHex: hashHex
+        }
+
+        window.localStorage.setItem(account.bitcoinCashAddress, hashHex);
+
+        this.setState({
+            accounts: newAccounts,
+            error: null
+        });
+
+        return;
 
         TrezorConnect.signTx(inputs, outputs, response => {
             console.log("SIGNTX", response);
             if(response.status){
-
+                this.setState({
+                    success: response
+                });
+            }else{
+                window.scrollTo(0, 0);
+                this.setState({
+                    error: response.error
+                });
             }
         });
 
@@ -140,16 +197,22 @@ export default class App extends Component {
             view = <Home 
                         click={ this.getAccounts.bind(this) }
                         block={ this.state.block }
+                        error={ this.state.error }
+                        hideError={ this.hideError.bind(this) }
                          /> 
         } else {
             const { accounts, fees, activeAccount, success, error } = this.state;
+            console.log("ACC", accounts)
             view = <Send 
+                        // callbacks
                         send={ this.signTX.bind(this) } 
                         selectAccount={ this.selectAccount.bind(this) }
+                        hideError={ this.hideError.bind(this) }
+                        // data
                         accounts= { accounts }
                         fees={ fees }
                         account={ accounts[activeAccount] }
-                        success={ success }
+                        success={ accounts[activeAccount].transactionSuccess }
                         error={ error } />;
         }
 

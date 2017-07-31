@@ -19,12 +19,13 @@ app.use(require('webpack-dev-middleware')(compiler, {
 app.use(require('webpack-hot-middleware')(compiler));
 
 app.get('*', function(req, res) {
-    // console.log("SEND", req.url)
+    console.log("SEND", req.params[0])
     // if(req.url === '/config.json'){
 
     // }
     //res.sendFile(INDEX);
-    res.sendFile(ABSOLUTE_BASE + '/src' + req.url);
+    //res.sendFile(ABSOLUTE_BASE + '/src' + req.url); // problem with query ?r=...
+    res.sendFile(ABSOLUTE_BASE + '/src' + req.params[0]);
 });
 
 app.listen(PORT, 'localhost', function(err) {
