@@ -188,8 +188,8 @@
             }
         }
 
+        // without using predefined TREZOR accounts
         &.not-bch-account {
-
 
             .show-advanced-settings {
                 display: none;
@@ -217,7 +217,20 @@
                 button {
                     display: none !important;
                 }
+                &:after {
+                    .glyphicon-checkmark;
+                    padding-right: 18px;
+                }
             }
+
+            &.empty {
+                .address-input {
+                    &:after {
+                        display: none;
+                    }
+                }
+            }
+
             .claim-button {
                 span {
                     display: none;

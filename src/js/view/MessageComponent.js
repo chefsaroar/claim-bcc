@@ -16,12 +16,11 @@ export default class MessageComponent extends Component {
                 </article>
             );
         }else{
-            let url = `https://bch-bitcore2.trezor.io/tx/${props.success.hashHex}`;
             return (
                 <article>
                     <h4>Transaction was successfully sent.</h4>
                     <p>
-                        <a href={ url } target="_blank">Check transaction details</a>
+                        <a href={ props.success.url } target="_blank">Check transaction details</a>
                     </p>
                 </article>
             );

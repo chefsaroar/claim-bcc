@@ -51,3 +51,12 @@ export function getBitcoinCashPathFromIndex(index: number) {
         (index | HD_HARDENED) >>> 0
     ];
 }
+
+export function isBitcoinCashAccount(bchAccounts, address): boolean {
+    for(let account of bchAccounts) {
+        if(account.address === address) {
+            return true;
+        }
+    }
+    return false;
+}

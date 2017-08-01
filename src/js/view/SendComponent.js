@@ -1,6 +1,6 @@
 import { h, Component } from 'preact';
 import bitcoinjs from 'bitcoinjs-lib';
-import { satoshi2btc, getValidInputs, calculateFee } from '../utils/utils';
+import { satoshi2btc, getValidInputs, calculateFee, isBitcoinCashAccount } from '../utils/utils';
 import Message from './MessageComponent';
 
 const initalState = {
@@ -50,7 +50,7 @@ export default class SendComponent extends Component {
             accountId: props.account.id,
             //address: props.account.bitcoinCashAddress,
             address: props.bchAccounts.length > 0 ? props.bchAccounts[0].address : this.state.address,
-            advanced: props.useBchAccounts ? advanced : true,
+            advanced: props.useTrezorAccounts ? advanced : true,
             selectedFee: selectedFee,
             fee: fee,
         };
@@ -80,6 +80,7 @@ export default class SendComponent extends Component {
     resetAddress() {
         this.setState({
             address: this.props.account.bitcoinCashAddress,
+            // TODO
             //address: this.props.bchAccounts.length > 0 ? this.props.bchAccounts[0].address : '',
             addressIsValid: true
         });
@@ -101,7 +102,7 @@ export default class SendComponent extends Component {
         // no account is set in state yet, don't render anything...
         if(accountId < 0) return null;
 
-        const { account, success, error } = props;
+        const { account, bchAccounts, useTrezorAccounts, success, error } = props;
 
         // form values
 
@@ -124,18 +125,23 @@ export default class SendComponent extends Component {
         const amountHintClassName = `amount-hint ${ (account.balance !== account.availableBCH) ? 'warning' : '' }`;
 
         // target address validation
-        var formClassName = props.useBchAccounts ? 'valid' : 'not-bch-account';
+        var formClassName = useTrezorAccounts ? 'valid' : 'not-bch-account';
         var addressHint;
         if (!addressIsValid) {
             addressHint = 'Not a valid address';
-            formClassName = props.useBchAccounts ? 'not-valid' : 'not-valid not-bch-account';
-        //} else if(props.account.bitcoinCashAddress !== address){
-        } else if(props.useBchAccounts && props.bchAccounts[0].address !== address){
-            addressHint = 'Not a TREZOR account, please double check it!';
-            formClassName = 'foreign-address';
-        } else if(props.useBchAccounts) {
-            addressHint = `Bcash Account #${ (props.accounts.length - props.bchAccounts.length + 1)} in TREZOR`;
-            //addressHint = `Bcash ${account.name} in TREZOR`;
+            formClassName = useTrezorAccounts ? 'not-valid' : 'not-valid not-bch-account';
+        } else if (useTrezorAccounts) {
+            if (!isBitcoinCashAccount(bchAccounts, address)) {
+                addressHint = 'Not a TREZOR account, please double check it!';
+                formClassName = 'foreign-address';
+            } else {
+                addressHint = `Bcash Account in TREZOR`;
+                formClassName = 'valid';
+                //addressHint = `Bcash Account #${ (props.accounts.length - bchAccounts.length + 1)} in TREZOR`;
+                //addressHint = `Bcash ${account.name} in TREZOR`;
+            }
+        } else {
+            formClassName = `not-bch-account ${ address === '' || address === undefined ? 'empty' : ''}`;
         }
 
         // disable form if amount <= 0 or availableBCH == 0
@@ -218,9 +224,8 @@ export default class SendComponent extends Component {
                     </div>
                     <p className="claim-button">
                         <button 
-                            //onClick={ () => props.send(account, props.bchAccounts[0].path, amountToClaim) }
                             onClick={ () => props.send(account, this.state.address, amountToClaim) }
-                            disabled={ !addressIsValid || !amoutIsValid }>{ claimButtonLabel }</button>
+                            disabled={ !addressIsValid || !amoutIsValid || address === undefined }>{ claimButtonLabel }</button>
                         <span>Your funds will be deposed in TREZOR Bcash {account.name}</span>
                     </p>
 

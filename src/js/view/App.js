@@ -16,12 +16,12 @@ export default class App extends Component {
             
             block: null,
             activeAccount: 0,
-            // useBchAccounts: false,
+            // useTrezorAccounts: false,
             // accounts: [ 
             //     { name: 'Account #1', 
             //       id: 0,
             //       balance: 300000,
-            //       availableBCH: 0,
+            //       availableBCH: 300000,
             //       unspents: [1],
             //       bitcoinCashAddress: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhT',
             //       transactionSuccess: { hashHex: '1924a52b1f97797dc1c072895d6441b96f28b8b4637bd0130eab3d32ef2be17e' } 
@@ -57,7 +57,8 @@ export default class App extends Component {
         getSplitBlock().then(json => {
             this.setState({
                 block: json.block,
-                useBchAccounts: json.useBchAccounts
+                useTrezorAccounts: json.useBchAccounts,
+                bitcoreApiUrl: 'https://bch-bitcore2.trezor.io/'
             });
         })
     }
@@ -82,7 +83,6 @@ export default class App extends Component {
                     let availableUnspents = [];
                     for(let unspent of account.unspents){
                         //if(unspent.height <= this.state.block){
-                            // TODO: check unspent in explorer
                             account.availableBCH += unspent.value;
                             availableUnspents.push(unspent);
                         //}
@@ -93,39 +93,19 @@ export default class App extends Component {
                     let hashHex = window.localStorage.getItem(account.bitcoinCashAddress);
                     if(hashHex){
                         account.transactionSuccess = {
+                            url: `${this.state.bitcoreApiUrl}tx/${hashHex}`,
                             hashHex: hashHex
                         }
                     }
                     accounts.push(account);
                 }
 
-                let bchAccounts = [];
-                if(this.state.useBchAccounts){
-                    accounts.reduce(
-                        (promise, a) => {
-                            return promise.then(() => {
-                                return fetch(`https://bch-bitcore2.trezor.io/api/addr/${a.bitcoinCashAddress}` ).then(response => {
-                                //fetch('https://bch-bitcore2.trezor.io/api/addr/1762dxy6MGPepeMj21QRgf6btDzpQTYsPy' ).then(response => {
-                                    return response.json().then(json => {
-                                        if(json.transactions.length === 0){
-                                            bchAccounts.push({
-                                                address: a.bitcoinCashAddress,
-                                                path: a.bitcoinCashPath
-                                            });
-                                        }
-                                        return bchAccounts;
-                                    }).catch(error => {
-                                        window.scrollTo(0, 0);
-                                        console.error(error);
-                                        this.setState({
-                                            error: error.message
-                                        });
-                                    })
-                                });
-                            });
-                        },
-                        Promise.resolve()
-                    ).then(acc => {
+                if(this.state.useTrezorAccounts){
+
+                    // filter trezor accounts without transactions with fallback
+
+                    this.getEmptyAccounts(accounts)
+                    .then(bchAccounts => {
                         this.setState({ 
                             accounts: accounts,
                             bchAccounts: bchAccounts,
@@ -133,25 +113,22 @@ export default class App extends Component {
                             error: null
                         });
                     }).catch(error => {
-                        window.scrollTo(0, 0);
-                        console.error(error);
-                        this.setState({
-                            error: error.message
+                        this.setState({ 
+                            accounts: accounts,
+                            bchAccounts: [],
+                            fees: response.fees,
+                            error: null
                         });
                     });
                 }else{
                     this.setState({ 
                         accounts: accounts,
-                        bchAccounts: bchAccounts,
+                        bchAccounts: [],
                         fees: response.fees,
                         error: null
                     });
                 }
 
-                // TODO: lookup if BCH account has no transactions
-                
-                
- 
             }else{
                 window.scrollTo(0, 0);
                 console.error(response.error);
@@ -160,6 +137,28 @@ export default class App extends Component {
                 });
             }
         }, TREZOR_FIRMWARE);
+    }
+
+    async getEmptyAccounts(accounts) {
+        let bchAccounts = [];
+        return await accounts.reduce(
+            (promise, a) => {
+                return promise.then(() => {
+                    return fetch(`${this.state.bitcoreApiUrl}api/addr/${a.bitcoinCashAddress}` ).then(response => {
+                        return response.json().then(json => {
+                            if(json.transactions.length === 0){
+                                bchAccounts.push({
+                                    address: a.bitcoinCashAddress,
+                                    path: a.bitcoinCashPath
+                                });
+                            }
+                            return bchAccounts;
+                        });
+                    });
+                });
+            },
+            Promise.resolve()
+        );
     }
 
     selectAccount(index: number): void {
@@ -210,10 +209,12 @@ export default class App extends Component {
                         newAccounts[index].balance = 0;
                         newAccounts[index].availableBCH = 0;
                         newAccounts[index].transactionSuccess = {
+                            url: `${this.state.bitcoreApiUrl}tx/${hashHex}`,
                             hashHex: hashHex
                         }
                         let newBccAccounts = [ ...this.state.bchAccounts ];
-                        newBccAccounts.splice(0, 1);
+                        if(newBccAccounts.length > 0)
+                            newBccAccounts.splice(0, 1);
 
                         // store tx in local storage
                         window.localStorage.setItem(account.bitcoinCashAddress, hashHex);
@@ -243,22 +244,19 @@ export default class App extends Component {
         }, TREZOR_FIRMWARE, 'Bcash');
 
 
-
-
-        // TODO sing and push TX
         // simulate error
         // this.setState({
         //     error: "Cancelled by user"
         // });
         // return;
 
-        //simulate success: update account
+        // simulate success: update account
         // let hashHex = '1234abcd';
         // let index = this.state.activeAccount;
         // let newAccounts = [ ...this.state.accounts ];
         // newAccounts[index].availableBCH = 0;
         // newAccounts[index].transactionSuccess = {
-        //     url: 'google.com',
+        //     url: `${this.state.bitcoreApiUrl}tx/${hashHex}`,
         //     hashHex: hashHex
         // }
 
@@ -275,26 +273,7 @@ export default class App extends Component {
         // return;
 
 
-        //  let hashHex = '1234abcd';
-        // let index = this.state.activeAccount;
-        // let newAccounts = [ ...this.state.accounts ];
-        // newAccounts[index].availableBCH = 0;
-        // newAccounts[index].transactionSuccess = {
-        //     url: 'google.com',
-        //     hashHex: hashHex
-        // }
-
-        // let newBccAccounts = [ ...this.state.bchAccounts ];
-        // newBccAccounts.splice(0, 1);
-
-        // window.localStorage.setItem(account.bitcoinCashAddress, hashHex);
-
-        // this.setState({
-        //     accounts: newAccounts,
-        //     bchAccounts: newBccAccounts,
-        //     error: null
-        // });
-        // return;
+        
 
 
         
@@ -318,7 +297,7 @@ export default class App extends Component {
                         selectAccount={ this.selectAccount.bind(this) }
                         hideError={ this.hideError.bind(this) }
                         // data
-                        useBchAccounts={ this.state.useBchAccounts }
+                        useTrezorAccounts={ this.state.useTrezorAccounts && bchAccounts.length > 0 }
                         accounts={ accounts }
                         bchAccounts={ bchAccounts }
                         fees={ fees }
