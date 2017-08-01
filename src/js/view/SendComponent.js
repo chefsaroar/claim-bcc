@@ -180,9 +180,6 @@ export default class SendComponent extends Component {
                             onChange={ () => props.selectAccount(event.currentTarget.selectedIndex) }>
                             { accountSelect }
                         </select>
-                        <span>
-                            Balance: { satoshi2btc(account.balance) } BTC
-                        </span>
                     </p>
                     <div className={ advancedSettingsButtonClassName }>
                         <a href="#" onClick={ () => this.toggleAdvanced(event) }>{ advancedSettingsButtonLabel }</a>

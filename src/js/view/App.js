@@ -21,10 +21,10 @@ export default class App extends Component {
             //     { name: 'Account #1', 
             //       id: 0,
             //       balance: 300000,
-            //       availableBCH: 100000,
+            //       availableBCH: 0,
             //       unspents: [1],
             //       bitcoinCashAddress: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhT',
-            //       //transactionSuccess: { hashHex: '1924a52b1f97797dc1c072895d6441b96f28b8b4637bd0130eab3d32ef2be17e' } 
+            //       transactionSuccess: { hashHex: '1924a52b1f97797dc1c072895d6441b96f28b8b4637bd0130eab3d32ef2be17e' } 
             //     },
             //     { name: 'Account #2',
             //       id: 1,
@@ -42,9 +42,9 @@ export default class App extends Component {
             //     } 
             // ],
             // bchAccounts: [
-            //     { address: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhT', path: '1'},
-            //     { address: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhT', path: '2'},
-            //     { address: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhT', path: '3'},
+            //     // { address: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhTa', path: '1'},
+            //     // { address: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhT', path: '2'},
+            //     // { address: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhT', path: '3'},
             // ],
             // fees: [
             //     { name: "High", maxFee: 20000 },
@@ -81,11 +81,11 @@ export default class App extends Component {
                     // filter available unspents
                     let availableUnspents = [];
                     for(let unspent of account.unspents){
-                        if(unspent.height <= this.state.block){
+                        //if(unspent.height <= this.state.block){
                             // TODO: check unspent in explorer
                             account.availableBCH += unspent.value;
                             availableUnspents.push(unspent);
-                        }
+                        //}
                     }
                     account.unspents = availableUnspents;
 
@@ -207,6 +207,7 @@ export default class App extends Component {
                         let hashHex = pushResult.txid;
                         let index = this.state.activeAccount;
                         let newAccounts = [ ...this.state.accounts ];
+                        newAccounts[index].balance = 0;
                         newAccounts[index].availableBCH = 0;
                         newAccounts[index].transactionSuccess = {
                             hashHex: hashHex
