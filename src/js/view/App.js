@@ -13,13 +13,13 @@ export default class App extends Component {
         super(props);
 
         this.state = {
-            block: 0,
+            block: null,
             activeAccount: 0,
             // accounts: [ 
             //     { name: 'Account #1', 
             //       id: 0,
-            //       balance: 10000,
-            //       availableBCH: 30000,
+            //       balance: 300000,
+            //       availableBCH: 100000,
             //       unspents: [1],
             //       bitcoinCashAddress: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhT',
             //       //transactionSuccess: { hashHex: '1924a52b1f97797dc1c072895d6441b96f28b8b4637bd0130eab3d32ef2be17e' } 
@@ -40,9 +40,9 @@ export default class App extends Component {
             //     } 
             // ],
             // bchAccounts: [
-            //     { address: '1', path: '1'},
-            //     { address: '2', path: '2'},
-            //     { address: '3', path: '3'},
+            //     { address: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhT', path: '1'},
+            //     { address: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhT', path: '2'},
+            //     { address: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhT', path: '3'},
             // ],
             // fees: [
             //     { name: "High", maxFee: 20000 },
@@ -128,18 +128,10 @@ export default class App extends Component {
                     window.scrollTo(0, 0);
                     console.error(error);
                     this.setState({
-                        error: error
+                        error: error.message
                     });
                 });
-                
-
-
-                // this.setState({ 
-                //     accounts: accounts,
-                //     bchAccounts: bchAccounts,
-                //     fees: response.fees,
-                //     error: null
-                // });
+ 
             }else{
                 window.scrollTo(0, 0);
                 console.error(response.error);
@@ -198,6 +190,9 @@ export default class App extends Component {
                         newAccounts[index].transactionSuccess = {
                             hashHex: hashHex
                         }
+                        let newBccAccounts = [ ...this.state.bchAccounts ];
+                        newBccAccounts.splice(0, 1);
+
                         // store tx in local storage
                         window.localStorage.setItem(account.bitcoinCashAddress, hashHex);
 
@@ -236,6 +231,28 @@ export default class App extends Component {
 
         //simulate success: update account
         // let hashHex = '1234abcd';
+        // let index = this.state.activeAccount;
+        // let newAccounts = [ ...this.state.accounts ];
+        // newAccounts[index].availableBCH = 0;
+        // newAccounts[index].transactionSuccess = {
+        //     url: 'google.com',
+        //     hashHex: hashHex
+        // }
+
+        // let newBccAccounts = [ ...this.state.bchAccounts ];
+        // newBccAccounts.splice(0, 1);
+
+        // window.localStorage.setItem(account.bitcoinCashAddress, hashHex);
+
+        // this.setState({
+        //     accounts: newAccounts,
+        //     bchAccounts: newBccAccounts,
+        //     error: null
+        // });
+        // return;
+
+
+        //  let hashHex = '1234abcd';
         // let index = this.state.activeAccount;
         // let newAccounts = [ ...this.state.accounts ];
         // newAccounts[index].availableBCH = 0;

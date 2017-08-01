@@ -11,7 +11,7 @@ const extractLess = new ExtractTextPlugin({
 
 module.exports = {
     entry: {
-        index: `${SRC}js/index.js`
+        index: ['whatwg-fetch', `${SRC}js/index.js`]
     },
     output: {
         filename: 'js/[name].[chunkhash].js',
