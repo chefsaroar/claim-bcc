@@ -7,7 +7,8 @@
     // Advanced settings button
     .show-advanced-settings {
         padding-left: 17%;
-        padding-bottom: 6px;
+        padding-top: 4px;
+        padding-bottom: 10px;
         a {
             color: @color_green;
             font-size: .8em;
@@ -50,7 +51,7 @@
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 
         p {
-            padding-bottom: 15px;
+            padding-bottom: 25px;
             &:first-child {
                 padding-bottom: 4px;
             }
@@ -73,11 +74,17 @@
             padding-top: 7px;
             text-transform: uppercase;
             font-size: 1em;
-            font-weight: bold;
+            font-weight: 400;
             color: #99979c;
             min-height: 1px;
             padding-left: 15px;
             padding-right: 15px;
+
+            &.targetAddressLabel {
+                vertical-align: top;
+                line-height: 1.2;
+                padding-top: 0;
+            }
         }
 
         #address {
@@ -124,7 +131,8 @@
             &.address-hint {
                 display: block;
                 margin-left: 17%;
-                margin-top: 8px;
+                margin-top: 1px;
+                padding-bottom: 10px;
             }
             
             &.amount-hint {
@@ -203,6 +211,34 @@
             }
         }
 
+        // common
+        &.foreign-address, 
+        &.not-valid {
+            .address-input {
+                button {
+                    display: block;
+                }
+            }
+            .address-hint {
+                //margin-top: 8px;
+                margin-bottom:4px;
+                &:before {
+                    .glyphicon-warning;
+                    vertical-align: -1px;
+                    margin-right: 8px;
+                    font-size: 14px;
+                }
+            }
+        }
+
+        &.low-amount {
+            .claim-button {
+                span {
+                    display: none;
+                }
+            }
+        }
+
         // form disabled (balance === 0)
         &.disabled {
             .show-advanced-settings,
@@ -230,24 +266,6 @@
             }
         }
 
-        // common
-        &.foreign-address, 
-        &.not-valid {
-            .address-input {
-                button {
-                    display: block;
-                }
-            }
-            .address-hint {
-                margin-top: 10px;
-                margin-bottom: 4px;
-                &:before {
-                    .glyphicon-warning;
-                    vertical-align: -1px;
-                    margin-right: 8px;
-                    font-size: 14px;
-                }
-            }
-        }
+        
     }
 }

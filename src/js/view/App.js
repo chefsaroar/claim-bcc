@@ -18,17 +18,36 @@ export default class App extends Component {
             // accounts: [ 
             //     { name: 'Account #1', 
             //       id: 0,
-            //       balance: 20000000,
+            //       balance: 10000,
             //       availableBCH: 30000,
             //       unspents: [1],
             //       bitcoinCashAddress: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhT',
-            //       transactionSuccess: { hashHex: '1924a52b1f97797dc1c072895d6441b96f28b8b4637bd0130eab3d32ef2be17e' } 
+            //       //transactionSuccess: { hashHex: '1924a52b1f97797dc1c072895d6441b96f28b8b4637bd0130eab3d32ef2be17e' } 
             //     },
-            //     { name: 'Account #2', id: 1, balance: 0, unspents: [] } 
+            //     { name: 'Account #2',
+            //       id: 1,
+            //       balance: 10000000000,
+            //       availableBCH: 50000000,
+            //       unspents: [1,2],
+            //       bitcoinCashAddress: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhZ'
+            //     },
+            //     { name: 'Account #3',
+            //       id: 1,
+            //       balance: 10000000000,
+            //       availableBCH: 50000000,
+            //       unspents: [1,2],
+            //       bitcoinCashAddress: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhZ'
+            //     } 
+            // ],
+            // bchAccounts: [
+            //     { address: '1', path: '1'},
+            //     { address: '2', path: '2'},
+            //     { address: '3', path: '3'},
             // ],
             // fees: [
-            //     { name: "High", maxFee: 200 },
-            //     { name: "Normal", maxFee: 100 }
+            //     { name: "High", maxFee: 20000 },
+            //     { name: "Normal", maxFee: 10000 },
+            //     { name: "Low", maxFee: 100 },
             // ],
             //error: "some error"
         };
@@ -44,17 +63,15 @@ export default class App extends Component {
         TrezorConnect.claimBitcoinCashAccountsInfo(response => {
             if(response.success){
                 let accounts = [];
+                
                 let accountsLen = response.accounts.length - 1;
                 for(let [index, account] of response.accounts.entries()){
-                    // filter empty accounts (except for first account)
-
                     
                     // ignore last empty account
                     if(index > 0 && index === accountsLen && account.addressId === 0 && account.balance === 0 ) {
                         continue;
                     }
-                    
-                    //if(accounts.length >  || (account.addressId > 0 && account.balance > 0)) {
+
                     account.name = `Account #${(account.id + 1)}`;
                     account.availableBCH = 0;
                     
@@ -76,17 +93,56 @@ export default class App extends Component {
                             hashHex: hashHex
                         }
                     }
-
                     accounts.push(account);
-
                 }
-                this.setState({ 
-                    accounts: accounts,
-                    fees: response.fees,
-                    error: null
+
+                // TODO: lookup if BCH account has no transactions
+                let bchAccounts = [];
+                accounts.reduce(
+                    (promise, a) => {
+                        return promise.then(() => {
+                            return fetch('https://bch-bitcore2.trezor.io/api/addr/' + a.bitcoinCashAddress ).then(response => {
+                            //fetch('https://bch-bitcore2.trezor.io/api/addr/1762dxy6MGPepeMj21QRgf6btDzpQTYsPy' ).then(response => {
+                                return response.json().then(json => {
+                                    console.log("VAL", json.transactions.length);
+                                    if(json.transactions.length === 0){
+                                        bchAccounts.push({
+                                            address: a.bitcoinCashAddress,
+                                            path: a.bitcoinCashPath
+                                        });
+                                    }
+                                    return bchAccounts;
+                                });
+                            });
+                        });
+                    },
+                    Promise.resolve()
+                ).then(acc => {
+                    this.setState({ 
+                        accounts: accounts,
+                        bchAccounts: bchAccounts,
+                        fees: response.fees,
+                        error: null
+                    });
+                }).catch(error => {
+                    window.scrollTo(0, 0);
+                    console.error(error);
+                    this.setState({
+                        error: error
+                    });
                 });
+                
+
+
+                // this.setState({ 
+                //     accounts: accounts,
+                //     bchAccounts: bchAccounts,
+                //     fees: response.fees,
+                //     error: null
+                // });
             }else{
                 window.scrollTo(0, 0);
+                console.error(response.error);
                 this.setState({
                     error: response.error
                 });
@@ -107,30 +163,32 @@ export default class App extends Component {
         });
     }
 
-    signTX(account: Object, amount: number): void {
+    signTX(account: Object, bchPath: number, amount: number): void {
 
-        console.log("Acccout", account);
         let inputs = [];
         for(let input of account.unspents){
-            console.log("input", input);
             inputs.push({
                 address_n: input.addressPath,
                 prev_index: input.vout,
-                prev_hash: input.txId
+                prev_hash: input.txId,
+                amount: input.value
             });
         }
 
         let outputs = [
             {
-                address_n: account.bitcoinCashPath,
+                //address_n: account.bitcoinCashPath,
+                address_n: bchPath,
                 amount: amount,
                 script_type: 'PAYTOADDRESS'
             }
         ];
 
         TrezorConnect.signTx(inputs, outputs, response => {
-            if(response.status){
+            console.log("SingTx", response)
+            if(response.success){
                 TrezorConnect.pushTransaction(response.serialized_tx, pushResult => {
+                    console.log("pushTransaction", pushResult)
                     if (pushResult.success) {
                         // update cached values for account
                         let hashHex = pushResult.txid;
@@ -150,19 +208,21 @@ export default class App extends Component {
                         });
                     } else {
                         window.scrollTo(0, 0);
+                        console.error(pushResult.error);
                         this.setState({
-                            error: pushResult.error
+                            error: pushResult.error.message
                         });
                     }
                 });
                 
             }else{
                 window.scrollTo(0, 0);
+                console.error(response.error);
                 this.setState({
                     error: response.error
                 });
             }
-        }, TREZOR_FIRMWARE);
+        }, TREZOR_FIRMWARE, 'Bcash');
 
 
 
@@ -174,8 +234,7 @@ export default class App extends Component {
         // });
         // return;
 
-
-        // simulate success: update account
+        //simulate success: update account
         // let hashHex = '1234abcd';
         // let index = this.state.activeAccount;
         // let newAccounts = [ ...this.state.accounts ];
@@ -185,13 +244,20 @@ export default class App extends Component {
         //     hashHex: hashHex
         // }
 
+        // let newBccAccounts = [ ...this.state.bchAccounts ];
+        // newBccAccounts.splice(0, 1);
+
         // window.localStorage.setItem(account.bitcoinCashAddress, hashHex);
 
         // this.setState({
         //     accounts: newAccounts,
+        //     bchAccounts: newBccAccounts,
         //     error: null
         // });
         // return;
+
+
+        
     }
 
     render(props) {
@@ -205,14 +271,15 @@ export default class App extends Component {
                         hideError={ this.hideError.bind(this) }
                          /> 
         } else {
-            const { accounts, fees, activeAccount, success, error } = this.state;
+            const { accounts, bchAccounts, fees, activeAccount, success, error } = this.state;
             view = <Send 
                         // callbacks
                         send={ this.signTX.bind(this) } 
                         selectAccount={ this.selectAccount.bind(this) }
                         hideError={ this.hideError.bind(this) }
                         // data
-                        accounts= { accounts }
+                        accounts={ accounts }
+                        bchAccounts={ bchAccounts }
                         fees={ fees }
                         account={ accounts[activeAccount] }
                         success={ accounts[activeAccount].transactionSuccess }

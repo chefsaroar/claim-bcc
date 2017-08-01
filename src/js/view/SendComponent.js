@@ -34,12 +34,25 @@ export default class SendComponent extends Component {
 
     // set state values on init (constructor) or account change (componentWillReceiveProps)
     getAccountState(props, state) {
+
+        // corner case:
+        // after account selection availableBCH - fee <= 0 (fee Normal, which is set as default)
+        // try to set fee as Low, recalculate fee and open advanced tab
+        let fee = calculateFee(props.account.unspents.length, 1, props.fees[ state.selectedFee ].maxFee);
+        let selectedFee = state.selectedFee;
+        let advanced = state.advanced;
+        if (props.account.availableBCH - fee <= 0){
+            advanced = true;
+            selectedFee = props.fees.length - 1;
+            fee = calculateFee(props.account.unspents.length, 1, props.fees[ selectedFee ].maxFee);
+        }
         return {
             accountId: props.account.id,
-            advanced: state.advanced,
-            address: props.account.bitcoinCashAddress,
-            selectedFee: state.selectedFee,
-            fee: calculateFee(props.account.unspents.length, 1, props.fees[ state.selectedFee ].maxFee),
+            //address: props.account.bitcoinCashAddress,
+            address: props.bchAccounts[0].address,
+            advanced: advanced,
+            selectedFee: selectedFee,
+            fee: fee,
         };
     }
 
@@ -66,7 +79,8 @@ export default class SendComponent extends Component {
 
     resetAddress() {
         this.setState({
-            address: this.props.account.bitcoinCashAddress,
+            //address: this.props.account.bitcoinCashAddress,
+            address: this.props.bchAccounts[0].address,
             addressIsValid: true
         });
     }
@@ -92,7 +106,7 @@ export default class SendComponent extends Component {
         // form values
 
         const accountSelect = props.accounts.map((account, index) => 
-            <option value={index}>{ account.name }</option>
+            <option value={index}>{ account.name }  / { satoshi2btc(account.availableBCH) } BCH</option>
         );
         
         const feeSelect = props.fees.map((fee, index) => 
@@ -100,7 +114,7 @@ export default class SendComponent extends Component {
         );
 
         const amountToClaim = account.availableBCH - fee;
-        const amountToClaimBTC = satoshi2btc(amountToClaim); 
+        var amountToClaimBTC = satoshi2btc(amountToClaim); 
 
         // css classNames and labels
 
@@ -109,19 +123,19 @@ export default class SendComponent extends Component {
         const advancedSettingsClassName = `advanced-settings ${ advanced ? 'opened' : '' }`;
         const amountHintClassName = `amount-hint ${ (account.balance !== account.availableBCH) ? 'warning' : '' }`;
 
-        
-
         // target address validation
         var formClassName = 'valid';
         var addressHint;
         if (!addressIsValid) {
             addressHint = 'Not a valid address';
             formClassName = 'not-valid';
-        } else if(props.account.bitcoinCashAddress !== address){
+        //} else if(props.account.bitcoinCashAddress !== address){
+        } else if(props.bchAccounts[0].address !== address){
             addressHint = 'Not a TREZOR account, please double check it!';
             formClassName = 'foreign-address';
         } else {
-            addressHint = `Bitcoin Cash ${account.name} in TREZOR`;
+            addressHint = `Bcash Account #${ (props.accounts.length - props.bchAccounts.length + 1)} in TREZOR`;
+            //addressHint = `Bcash ${account.name} in TREZOR`;
         }
 
         // disable form if amount <= 0 or availableBCH == 0
@@ -138,10 +152,19 @@ export default class SendComponent extends Component {
                 emptyAccountHint = "Your BTC was received after the chain-split.";
             }
         }
+
+        var claimButtonLabel = `Claim ${ amountToClaimBTC } BCH`;
+        var amoutIsValid = true;
+        if(amountToClaim < 0){
+            amoutIsValid = false;
+            amountToClaimBTC = 0;
+            claimButtonLabel = 'Amount is too low!';
+            formClassName += ' low-amount';
+        }
         
         return (
             <section className="component-send">
-                <h3>Claim Bitcoin Cash to your wallet</h3>
+                <h3>Claim Bcash to your wallet</h3>
 
                 <Message 
                     header="Failed to send transaction."
@@ -158,7 +181,7 @@ export default class SendComponent extends Component {
                             { accountSelect }
                         </select>
                         <span>
-                            Balance: { satoshi2btc(account.balance) } BTC / { satoshi2btc(account.availableBCH) } BCH
+                            Balance: { satoshi2btc(account.balance) } BTC
                         </span>
                     </p>
                     <div className={ advancedSettingsButtonClassName }>
@@ -166,11 +189,11 @@ export default class SendComponent extends Component {
                     </div>
                     <div className={ advancedSettingsClassName }>
                         <p>
-                            <label for="address">Address</label>
+                            <label className="targetAddressLabel" for="address">Target Address</label>
                             <span className="address-input">
                                 <input id="address" type="text" value={ this.state.address } onInput={ () => this.onAddressChange(event) } />
                                 <button onClick={ () => this.resetAddress() }>
-                                    <span>Set TREZOR address</span>
+                                    <span>Set address from TREZOR</span>
                                 </button>
                             </span>
                             <span className="address-hint">
@@ -198,9 +221,9 @@ export default class SendComponent extends Component {
                     </div>
                     <p className="claim-button">
                         <button 
-                            onClick={ () => props.send(account, amountToClaim) }
-                            disabled={ !addressIsValid }>Claim { amountToClaimBTC } BCH</button>
-                        <span>Your funds will be deposed in TREZOR Bitcoin Cash {account.name}</span>
+                            onClick={ () => props.send(account, props.bchAccounts[0].path, amountToClaim) }
+                            disabled={ !addressIsValid || !amoutIsValid }>{ claimButtonLabel }</button>
+                        <span>Your funds will be deposed in TREZOR Bcash {account.name}</span>
                     </p>
 
                     <div className="empty-account">
