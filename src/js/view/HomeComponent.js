@@ -4,7 +4,7 @@ import Message from './MessageComponent';
 export default class HomeComponent extends Component {
     render(props) {
         let buttonClassName = props.block === undefined || props.block === null ? 'hidden' : '';
-        let buttonLabel = props.block ? 'Connect with TREZOR' : 'This feature will be available after fork (12:20 UTC)';
+        let buttonLabel = props.block ? 'Connect with TREZOR' : 'This feature will be available after fork (~13:20 UTC)';
         return (
             <section className="component-home">
                 <h3>Claim your Bcash</h3>

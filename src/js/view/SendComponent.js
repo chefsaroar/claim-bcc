@@ -49,8 +49,8 @@ export default class SendComponent extends Component {
         return {
             accountId: props.account.id,
             //address: props.account.bitcoinCashAddress,
-            address: props.bchAccounts[0].address,
-            advanced: advanced,
+            address: props.bchAccounts.length > 0 ? props.bchAccounts[0].address : this.state.address,
+            advanced: props.useBchAccounts ? advanced : true,
             selectedFee: selectedFee,
             fee: fee,
         };
@@ -79,8 +79,8 @@ export default class SendComponent extends Component {
 
     resetAddress() {
         this.setState({
-            //address: this.props.account.bitcoinCashAddress,
-            address: this.props.bchAccounts[0].address,
+            address: this.props.account.bitcoinCashAddress,
+            //address: this.props.bchAccounts.length > 0 ? this.props.bchAccounts[0].address : '',
             addressIsValid: true
         });
     }
@@ -124,16 +124,16 @@ export default class SendComponent extends Component {
         const amountHintClassName = `amount-hint ${ (account.balance !== account.availableBCH) ? 'warning' : '' }`;
 
         // target address validation
-        var formClassName = 'valid';
+        var formClassName = props.useBchAccounts ? 'valid' : 'not-bch-account';
         var addressHint;
         if (!addressIsValid) {
             addressHint = 'Not a valid address';
-            formClassName = 'not-valid';
+            formClassName = props.useBchAccounts ? 'not-valid' : 'not-valid not-bch-account';
         //} else if(props.account.bitcoinCashAddress !== address){
-        } else if(props.bchAccounts[0].address !== address){
+        } else if(props.useBchAccounts && props.bchAccounts[0].address !== address){
             addressHint = 'Not a TREZOR account, please double check it!';
             formClassName = 'foreign-address';
-        } else {
+        } else if(props.useBchAccounts) {
             addressHint = `Bcash Account #${ (props.accounts.length - props.bchAccounts.length + 1)} in TREZOR`;
             //addressHint = `Bcash ${account.name} in TREZOR`;
         }
@@ -191,7 +191,7 @@ export default class SendComponent extends Component {
                         <p>
                             <label className="targetAddressLabel" for="address">Target Address</label>
                             <span className="address-input">
-                                <input id="address" type="text" value={ this.state.address } onInput={ () => this.onAddressChange(event) } />
+                                <input id="address" type="text" placeholder="Please make sure it's a BCH address!" value={ this.state.address } onInput={ () => this.onAddressChange(event) } />
                                 <button onClick={ () => this.resetAddress() }>
                                     <span>Set address from TREZOR</span>
                                 </button>
@@ -221,7 +221,8 @@ export default class SendComponent extends Component {
                     </div>
                     <p className="claim-button">
                         <button 
-                            onClick={ () => props.send(account, props.bchAccounts[0].path, amountToClaim) }
+                            //onClick={ () => props.send(account, props.bchAccounts[0].path, amountToClaim) }
+                            onClick={ () => props.send(account, this.state.address, amountToClaim) }
                             disabled={ !addressIsValid || !amoutIsValid }>{ claimButtonLabel }</button>
                         <span>Your funds will be deposed in TREZOR Bcash {account.name}</span>
                     </p>

@@ -13,8 +13,10 @@ export default class App extends Component {
         super(props);
 
         this.state = {
+            
             block: null,
             activeAccount: 0,
+            // useBchAccounts: false,
             // accounts: [ 
             //     { name: 'Account #1', 
             //       id: 0,
@@ -54,7 +56,8 @@ export default class App extends Component {
 
         getSplitBlock().then(json => {
             this.setState({
-                block: json.block
+                block: json.block,
+                useBchAccounts: json.useBchAccounts
             });
         })
     }
@@ -96,41 +99,58 @@ export default class App extends Component {
                     accounts.push(account);
                 }
 
-                // TODO: lookup if BCH account has no transactions
                 let bchAccounts = [];
-                accounts.reduce(
-                    (promise, a) => {
-                        return promise.then(() => {
-                            return fetch('https://bch-bitcore2.trezor.io/api/addr/' + a.bitcoinCashAddress ).then(response => {
-                            //fetch('https://bch-bitcore2.trezor.io/api/addr/1762dxy6MGPepeMj21QRgf6btDzpQTYsPy' ).then(response => {
-                                return response.json().then(json => {
-                                    console.log("VAL", json.transactions.length);
-                                    if(json.transactions.length === 0){
-                                        bchAccounts.push({
-                                            address: a.bitcoinCashAddress,
-                                            path: a.bitcoinCashPath
+                if(this.state.useBchAccounts){
+                    accounts.reduce(
+                        (promise, a) => {
+                            return promise.then(() => {
+                                return fetch(`https://bch-bitcore2.trezor.io/api/addr/${a.bitcoinCashAddress}` ).then(response => {
+                                //fetch('https://bch-bitcore2.trezor.io/api/addr/1762dxy6MGPepeMj21QRgf6btDzpQTYsPy' ).then(response => {
+                                    return response.json().then(json => {
+                                        if(json.transactions.length === 0){
+                                            bchAccounts.push({
+                                                address: a.bitcoinCashAddress,
+                                                path: a.bitcoinCashPath
+                                            });
+                                        }
+                                        return bchAccounts;
+                                    }).catch(error => {
+                                        window.scrollTo(0, 0);
+                                        console.error(error);
+                                        this.setState({
+                                            error: error.message
                                         });
-                                    }
-                                    return bchAccounts;
+                                    })
                                 });
                             });
+                        },
+                        Promise.resolve()
+                    ).then(acc => {
+                        this.setState({ 
+                            accounts: accounts,
+                            bchAccounts: bchAccounts,
+                            fees: response.fees,
+                            error: null
                         });
-                    },
-                    Promise.resolve()
-                ).then(acc => {
+                    }).catch(error => {
+                        window.scrollTo(0, 0);
+                        console.error(error);
+                        this.setState({
+                            error: error.message
+                        });
+                    });
+                }else{
                     this.setState({ 
                         accounts: accounts,
                         bchAccounts: bchAccounts,
                         fees: response.fees,
                         error: null
                     });
-                }).catch(error => {
-                    window.scrollTo(0, 0);
-                    console.error(error);
-                    this.setState({
-                        error: error.message
-                    });
-                });
+                }
+
+                // TODO: lookup if BCH account has no transactions
+                
+                
  
             }else{
                 window.scrollTo(0, 0);
@@ -170,7 +190,8 @@ export default class App extends Component {
         let outputs = [
             {
                 //address_n: account.bitcoinCashPath,
-                address_n: bchPath,
+                //address_n: bchPath,
+                address: bchPath,
                 amount: amount,
                 script_type: 'PAYTOADDRESS'
             }
@@ -199,6 +220,7 @@ export default class App extends Component {
                         // update view
                         this.setState({
                             accounts: newAccounts,
+                            bchAccounts: newBccAccounts,
                             error: null
                         });
                     } else {
@@ -295,6 +317,7 @@ export default class App extends Component {
                         selectAccount={ this.selectAccount.bind(this) }
                         hideError={ this.hideError.bind(this) }
                         // data
+                        useBchAccounts={ this.state.useBchAccounts }
                         accounts={ accounts }
                         bchAccounts={ bchAccounts }
                         fees={ fees }

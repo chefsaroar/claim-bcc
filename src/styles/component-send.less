@@ -86,6 +86,7 @@
                 padding-top: 0;
             }
         }
+        
 
         #address {
             width: 550px;
@@ -100,7 +101,7 @@
                 position: relative;
                 margin: 0;
                 &:after {
-                    .glyphicon-trezor;
+                    //.glyphicon-trezor;
                     position: absolute;
                     width: 16px;
                     height: 16px;
@@ -177,6 +178,51 @@
         // Claim button
         button {
             margin-left: 17%;
+        }
+
+        &.valid {
+            .address-input {
+                &:after {
+                    .glyphicon-trezor;
+                }
+            }
+        }
+
+        &.not-bch-account {
+
+
+            .show-advanced-settings {
+                display: none;
+            }
+
+            .advanced-settings {
+                p {
+                    &:first-child {
+                        padding-bottom: 15px;
+                    }
+                }
+            }
+
+            .address-hint {
+                padding-bottom: 0px !important;
+            }
+
+            p {
+                &:first-child {
+                    padding-bottom: 25px;
+                }
+            }
+
+            .address-input {
+                button {
+                    display: none !important;
+                }
+            }
+            .claim-button {
+                span {
+                    display: none;
+                }
+            }
         }
 
         // Address is not a TREZOR wallet, but still correct format
