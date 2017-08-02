@@ -66,6 +66,7 @@ export default class App extends Component {
     getAccounts(): void {
         TrezorConnect.claimBitcoinCashAccountsInfo(response => {
             if(response.success){
+                console.log("Accounts", response);
                 let accounts = [];
                 
                 let accountsLen = response.accounts.length - 1;
