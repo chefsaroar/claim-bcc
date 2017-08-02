@@ -45,8 +45,9 @@ export function getBitcoinCashPathFromIndex(index: number): Array<number> {
     ];
 }
 
-export function isBitcoinCashAccount(bchAccounts, address): boolean {
-    for(let account of bchAccounts) {
+export function isBitcoinCashAccount(bchAccounts, usedBchAccounts, address): boolean {
+    let accounts = [...bchAccounts, ...usedBchAccounts];
+    for(let account of accounts) {
         if(account.address === address) {
             return true;
         }

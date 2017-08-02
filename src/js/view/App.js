@@ -105,10 +105,11 @@ export default class App extends Component {
                     // filter trezor accounts without transactions with fallback
 
                     this.getEmptyAccounts(accounts)
-                    .then(bchAccounts => {
+                    .then(({ bchAccounts, usedBchAccounts }) => {
                         this.setState({ 
                             accounts: accounts,
                             bchAccounts: bchAccounts,
+                            usedBchAccounts: usedBchAccounts,
                             fees: response.fees,
                             error: null
                         });
@@ -116,6 +117,7 @@ export default class App extends Component {
                         this.setState({ 
                             accounts: accounts,
                             bchAccounts: [],
+                            usedBchAccounts: [],
                             fees: response.fees,
                             error: null
                         });
@@ -124,6 +126,7 @@ export default class App extends Component {
                     this.setState({ 
                         accounts: accounts,
                         bchAccounts: [],
+                        usedBchAccounts: [],
                         fees: response.fees,
                         error: null
                     });
@@ -141,6 +144,7 @@ export default class App extends Component {
 
     async getEmptyAccounts(accounts): Array<Object> {
         let bchAccounts = [];
+        let usedBchAccounts = [];
         return await accounts.reduce(
             (promise, a) => {
                 return promise.then(() => {
@@ -151,8 +155,15 @@ export default class App extends Component {
                                     address: a.bitcoinCashAddress,
                                     path: a.bitcoinCashPath
                                 });
+                            }else{
+                                usedBchAccounts.push(
+                                    {
+                                        address: a.bitcoinCashAddress,
+                                        path: a.bitcoinCashPath
+                                    }
+                                );
                             }
-                            return bchAccounts;
+                            return { bchAccounts: bchAccounts, usedBchAccounts: usedBchAccounts };
                         });
                     });
                 });
@@ -211,8 +222,9 @@ export default class App extends Component {
                             hashHex: hashHex
                         }
                         let newBccAccounts = [ ...this.state.bchAccounts ];
-                        if(newBccAccounts.length > 0)
-                            newBccAccounts.splice(0, 1);
+                        newBccAccounts.splice(0, 1);
+                        let usedBchAccounts = [ ...this.state.usedBchAccounts ];
+                        usedBchAccounts.push(this.state.bchAccounts[0]);
 
                         // store tx in local storage
                         window.localStorage.setItem(account.bitcoinCashAddress, hashHex);
@@ -221,6 +233,7 @@ export default class App extends Component {
                         this.setState({
                             accounts: newAccounts,
                             bchAccounts: newBccAccounts,
+                            usedBchAccounts: usedBchAccounts,
                             error: null
                         });
                     } else {
@@ -259,6 +272,8 @@ export default class App extends Component {
         // }
 
         // let newBccAccounts = [ ...this.state.bchAccounts ];
+        // let usedBchAccounts = [ ...this.state.usedBchAccounts ];
+        // usedBchAccounts.push(this.state.bchAccounts[0]);
         // newBccAccounts.splice(0, 1);
 
         // window.localStorage.setItem(account.bitcoinCashAddress, hashHex);
@@ -266,6 +281,7 @@ export default class App extends Component {
         // this.setState({
         //     accounts: newAccounts,
         //     bchAccounts: newBccAccounts,
+        //     usedBchAccounts: usedBchAccounts,
         //     error: null
         // });
         // return;
@@ -283,7 +299,7 @@ export default class App extends Component {
                         hideError={ this.hideError.bind(this) }
                          /> 
         } else {
-            const { accounts, bchAccounts, fees, activeAccount, success, error } = this.state;
+            const { accounts, bchAccounts, usedBchAccounts, fees, activeAccount, success, error } = this.state;
             view = <Send 
                         // callbacks
                         send={ this.signTX.bind(this) } 
@@ -293,6 +309,7 @@ export default class App extends Component {
                         useTrezorAccounts={ this.state.useTrezorAccounts && bchAccounts.length > 0 }
                         accounts={ accounts }
                         bchAccounts={ bchAccounts }
+                        usedBchAccounts={ usedBchAccounts }
                         fees={ fees }
                         account={ accounts[activeAccount] }
                         success={ accounts[activeAccount].transactionSuccess }

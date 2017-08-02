@@ -46,10 +46,18 @@ export default class SendComponent extends Component {
             selectedFee = props.fees.length - 1;
             fee = calculateFee(props.account.unspents.length, 1, props.fees[ selectedFee ].maxFee);
         }
+
+        let address = this.state.address;
+        let addressIsValid = this.state.addressIsValid === undefined ? true : this.state.addressIsValid;
+        if (props.useTrezorAccounts && (this.state.address === undefined || this.state.accountId !== props.account.id)) {
+            address = props.bchAccounts[0].address;
+            addressIsValid = true;
+        }
         return {
             accountId: props.account.id,
             //address: props.account.bitcoinCashAddress,
-            address: props.bchAccounts.length > 0 ? props.bchAccounts[0].address : this.state.address,
+            address: address,
+            addressIsValid: addressIsValid,
             advanced: props.useTrezorAccounts ? advanced : true,
             selectedFee: selectedFee,
             fee: fee,
@@ -79,9 +87,7 @@ export default class SendComponent extends Component {
 
     resetAddress() {
         this.setState({
-            address: this.props.account.bitcoinCashAddress,
-            // TODO
-            //address: this.props.bchAccounts.length > 0 ? this.props.bchAccounts[0].address : '',
+            address: this.props.bchAccounts.length > 0 ? this.props.bchAccounts[0].address : this.props.accounts[0].bitcoinCashAddress,
             addressIsValid: true
         });
     }
@@ -102,7 +108,7 @@ export default class SendComponent extends Component {
         // no account is set in state yet, don't render anything...
         if(accountId < 0) return null;
 
-        const { account, bchAccounts, useTrezorAccounts, success, error } = props;
+        const { account, bchAccounts, usedBchAccounts, useTrezorAccounts, success, error } = props;
 
         // form values
 
@@ -131,7 +137,7 @@ export default class SendComponent extends Component {
             addressHint = 'Not a valid address';
             formClassName = useTrezorAccounts ? 'not-valid' : 'not-valid not-bch-account';
         } else if (useTrezorAccounts) {
-            if (!isBitcoinCashAccount(bchAccounts, address)) {
+            if (!isBitcoinCashAccount(bchAccounts, usedBchAccounts, address)) {
                 addressHint = 'Not a TREZOR account, please double check it!';
                 formClassName = 'foreign-address';
             } else {
@@ -183,18 +189,18 @@ export default class SendComponent extends Component {
                         <label>Account</label>
                         <select 
                             value={ account.id } 
-                            onChange={ () => props.selectAccount(event.currentTarget.selectedIndex) }>
+                            onChange={ event => props.selectAccount(event.currentTarget.selectedIndex) }>
                             { accountSelect }
                         </select>
                     </p>
                     <div className={ advancedSettingsButtonClassName }>
-                        <a href="#" onClick={ () => this.toggleAdvanced(event) }>{ advancedSettingsButtonLabel }</a>
+                        <a href="#" onClick={ event => this.toggleAdvanced(event) }>{ advancedSettingsButtonLabel }</a>
                     </div>
                     <div className={ advancedSettingsClassName }>
                         <p>
                             <label className="targetAddressLabel" for="address">Target Address</label>
                             <span className="address-input">
-                                <input id="address" type="text" placeholder="Please make sure it's a BCH address!" value={ this.state.address } onInput={ () => this.onAddressChange(event) } />
+                                <input id="address" type="text" placeholder="Please make sure it's a BCH address!" value={ this.state.address } onInput={ event => this.onAddressChange(event) } />
                                 <button onClick={ () => this.resetAddress() }>
                                     <span>Set address from TREZOR</span>
                                 </button>
@@ -216,7 +222,7 @@ export default class SendComponent extends Component {
                         </p>
                         <p>
                             <label>Fee</label>
-                            <select value={ selectedFee } onChange={ () => this.changeFee(event) }>
+                            <select value={ selectedFee } onChange={ event => this.changeFee(event) }>
                                 { feeSelect }
                             </select>
                             <span>{ satoshi2btc(fee) } BCH</span>
