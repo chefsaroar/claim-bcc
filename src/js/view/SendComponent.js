@@ -6,7 +6,7 @@ import Message from './MessageComponent';
 const initalState = {
     accountId: -1,
     advanced: false,
-    address: null,
+    address: undefined,
     addressIsValid: true,
     selectedFee: 1,
     fee: 0
@@ -152,7 +152,7 @@ export default class SendComponent extends Component {
                 emptyAccountHint = "You have already claimed.";
             }else if (account.balance === 0) {
                 formClassName = 'disabled warning';
-                emptyAccountHint = "You don't have enough funds in your account."
+                emptyAccountHint = "You don't have enough funds in your account.";
             } else {
                 formClassName = 'disabled warning not-empty';
                 emptyAccountHint = "Your BTC was received after the chain-split.";
@@ -228,7 +228,6 @@ export default class SendComponent extends Component {
                             disabled={ !addressIsValid || !amoutIsValid || address === undefined }>{ claimButtonLabel }</button>
                         <span>Your funds will be deposed in TREZOR Bcash {account.name}</span>
                     </p>
-
                     <div className="empty-account">
                         <p>
                             { emptyAccountHint }

@@ -63,7 +63,7 @@ export default class App extends Component {
         })
     }
 
-    getAccounts() {
+    getAccounts(): void {
         TrezorConnect.claimBitcoinCashAccountsInfo(response => {
             if(response.success){
                 let accounts = [];
@@ -139,7 +139,7 @@ export default class App extends Component {
         }, TREZOR_FIRMWARE);
     }
 
-    async getEmptyAccounts(accounts) {
+    async getEmptyAccounts(accounts): Array<Object> {
         let bchAccounts = [];
         return await accounts.reduce(
             (promise, a) => {
@@ -174,7 +174,7 @@ export default class App extends Component {
         });
     }
 
-    signTX(account: Object, bchPath: number, amount: number): void {
+    signTX(account: Object, bchAddress: number, amount: number): void {
 
         let inputs = [];
         for(let input of account.unspents){
@@ -188,9 +188,7 @@ export default class App extends Component {
 
         let outputs = [
             {
-                //address_n: account.bitcoinCashPath,
-                //address_n: bchPath,
-                address: bchPath,
+                address: bchAddress,
                 amount: amount,
                 script_type: 'PAYTOADDRESS'
             }
@@ -272,14 +270,9 @@ export default class App extends Component {
         // });
         // return;
 
-
-        
-
-
-        
     }
 
-    render(props) {
+    render(props): void {
 
         let view;
         if (this.state.accounts === undefined) {

@@ -1,7 +1,6 @@
 const HD_HARDENED: number = 0x80000000;
 
 export function satoshi2btc(s: number): number {
-    //return (s / 100000000).toString();
     return Number(s / 100000000).toFixed(10).replace(/\.?0+$/,"");
 }
 
@@ -38,13 +37,7 @@ export function getSerializedPath(path: Array<number>): string {
     }).join('/');
 }
 
-export function getBitcoinCashPathFromIndex(index: number) {
-    // return getSerializedPath([
-    //     (44 | HD_HARDENED) >>> 0,
-    //     (145 | HD_HARDENED) >>> 0,
-    //     (index | HD_HARDENED) >>> 0
-    // ]);
-
+export function getBitcoinCashPathFromIndex(index: number): Array<number> {
     return [
         (44 | HD_HARDENED) >>> 0,
         (145 | HD_HARDENED) >>> 0,
