@@ -183,7 +183,13 @@ export default class SendComponent extends Component {
                     success={ success } 
                     error={ error }
                     hideError={ props.hideError } />
-                
+
+                <article className="info">
+                    <h4>Important Information</h4>
+                    <p>Bitcoin Cash/Bcash (BCH) Wallet is back online in TREZOR Wallet. However, we cannot fully guarantee the stability of our backend server yet. Therefore, we recommend you to claim your BCH coins to a third-party wallet, such as an exchange wallet.</p>
+                    <p><strong>You may claim your BCH coins directly into a third-party wallet, using this tool.</strong></p>
+                </article>
+
                 <fieldset className={ formClassName }>
                     <p>
                         <label>Account</label>
