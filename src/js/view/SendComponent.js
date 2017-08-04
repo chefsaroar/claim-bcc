@@ -151,7 +151,7 @@ export default class SendComponent extends Component {
         }
 
         // disable form if amount <= 0 or availableBCH == 0
-        var emptyAccountHint = "You don't have enought founds in your account.";
+        var emptyAccountHint = "You don't have enought funds in your account.";
         if (account.availableBCH === 0) {
             formClassName = 'disabled';
             if(success) {
@@ -170,7 +170,7 @@ export default class SendComponent extends Component {
         if(amountToClaim < 0){
             amoutIsValid = false;
             amountToClaimBTC = 0;
-            claimButtonLabel = 'Amount is too low!';
+            claimButtonLabel = "Amount is too low!";
             formClassName += ' low-amount';
         }
         

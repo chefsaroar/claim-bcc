@@ -27,9 +27,9 @@ cp -aR build ../$DIST
 
 printf "\n-- ADDING TO GIT ----------------------\n"
 cd ../$GH_PAGES
-#git add .
-#git commit -m $1
-#git push
+git add .
+git commit -m $1
+git push
 printf "\n-- Git pushed with message '$1'\n"
 printf "\n-- COMPLETE ---------------------------\n"
 cd ../$CLAIM
