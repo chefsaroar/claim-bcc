@@ -184,9 +184,9 @@ export default class SendComponent extends Component {
                     error={ error }
                     hideError={ props.hideError } />
 
-                <article className="info">
+                <article className="info" style="margin-top: 10px;">
                     <h4>Important Information</h4>
-                    <p>Bitcoin Cash/Bcash (BCH) Wallet is back online in TREZOR Wallet. However, we cannot fully guarantee the stability of our backend server yet. Therefore, we recommend you to claim your BCH coins to a third-party wallet, such as an exchange wallet.</p>
+                    <p>Bitcoin Cash/Bcash (BCH) Wallet is back online in TREZOR Wallet. However, we cannot fully guarantee the stability of our backend server yet. Therefore, we recommend you to claim your BCH coins to a third-party wallet, such as an exchange.</p>
                     <p><strong>You may claim your BCH coins directly into a third-party wallet, using this tool.</strong></p>
                 </article>
 
