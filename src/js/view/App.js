@@ -64,6 +64,10 @@ export default class App extends Component {
     }
 
     getAccounts(): void {
+
+        TrezorConnect.setAccountDiscoveryLimit(20);
+        TrezorConnect.setBitcoreURLS(this.state.bitcoreApiUrl);
+
         TrezorConnect.claimBitcoinCashAccountsInfo(response => {
             if(response.success){
                 console.log("Accounts", response);
