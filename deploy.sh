@@ -7,15 +7,15 @@ if [ -z "$1" ]
 fi
 
 GH_PAGES="trezorio-ghpages"
-DIST="trezorio-ghpages/claim-bch"
+DIST="trezorio-gspages/claim-bch"
 CLAIM="convert-bcc"
 
 printf "\n-- DEPLOY START -----------------------\n"
 
 # download current verison of gh_pages
-cd ../$GH_PAGES
-git pull
-cd ../$CLAIM
+# cd ../$GH_PAGES
+# git pull
+# cd ../$CLAIM
 
 printf "\n-- BUILDING PROJECT -------------------\n"
 yarn run build
@@ -27,9 +27,9 @@ cp -aR build ../$DIST
 
 printf "\n-- ADDING TO GIT ----------------------\n"
 cd ../$GH_PAGES
-git add .
-git commit -m $1
-git push
+# git add .
+# git commit -m $1
+# git push
 printf "\n-- Git pushed with message '$1'\n"
 printf "\n-- COMPLETE ---------------------------\n"
 cd ../$CLAIM
