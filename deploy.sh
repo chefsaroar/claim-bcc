@@ -7,7 +7,7 @@ if [ -z "$1" ]
 fi
 
 GH_PAGES="trezorio-ghpages"
-DIST="trezorio-gspages/claim-bch"
+DIST="trezorio-ghpages/claim-bch"
 CLAIM="convert-bcc"
 
 printf "\n-- DEPLOY START -----------------------\n"
