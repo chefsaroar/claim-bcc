@@ -50,12 +50,12 @@ export default class SendComponent extends Component {
         let address = this.state.address;
         let addressIsValid = this.state.addressIsValid === undefined ? true : this.state.addressIsValid;
         if (props.useTrezorAccounts && (this.state.address === undefined || this.state.accountId !== props.account.id)) {
-            address = props.bchAccounts[0].address;
+            address = props.trezorAccounts[0].address;
             addressIsValid = true;
         }
         return {
             accountId: props.account.id,
-            //address: props.account.bitcoinCashAddress,
+            //address: props.account.bitcoinAddress,
             address: address,
             addressIsValid: addressIsValid,
             advanced: props.useTrezorAccounts ? advanced : true,
@@ -87,7 +87,7 @@ export default class SendComponent extends Component {
 
     resetAddress() {
         this.setState({
-            address: this.props.bchAccounts.length > 0 ? this.props.bchAccounts[0].address : this.props.accounts[0].bitcoinCashAddress,
+            address: this.props.trezorAccounts.length > 0 ? this.props.trezorAccounts[0].address : this.props.accounts[0].bitcoinAddress,
             addressIsValid: true
         });
     }
@@ -108,12 +108,12 @@ export default class SendComponent extends Component {
         // no account is set in state yet, don't render anything...
         if(accountId < 0) return null;
 
-        const { account, bchAccounts, usedBchAccounts, useTrezorAccounts, success, error } = props;
+        const { account, trezorAccounts, usedTrezorAccounts, useTrezorAccounts, success, error } = props;
 
         // form values
 
         const accountSelect = props.accounts.map((account, index) => 
-            <option value={index}>{ account.name }  / { satoshi2btc(account.availableBCH) } BCH</option>
+            <option value={index}>{ account.name }  / { satoshi2btc(account.availableBCH) } BTC</option>
         );
         
         const feeSelect = props.fees.map((fee, index) => 
@@ -137,14 +137,12 @@ export default class SendComponent extends Component {
             addressHint = 'Not a valid address';
             formClassName = useTrezorAccounts ? 'not-valid' : 'not-valid not-bch-account';
         } else if (useTrezorAccounts) {
-            if (!isBitcoinCashAccount(bchAccounts, usedBchAccounts, address)) {
-                addressHint = 'Not a TREZOR account, please double check it!';
+            if (!isBitcoinCashAccount(trezorAccounts, usedTrezorAccounts, address)) {
+                addressHint = 'Possibly not a TREZOR account, please double check it!';
                 formClassName = 'foreign-address';
             } else {
-                addressHint = `Bcash Account in TREZOR`;
+                addressHint = `Bitcoin Account in TREZOR`;
                 formClassName = 'valid';
-                //addressHint = `Bcash Account #${ (props.accounts.length - bchAccounts.length + 1)} in TREZOR`;
-                //addressHint = `Bcash ${account.name} in TREZOR`;
             }
         } else {
             formClassName = `not-bch-account ${ address === '' || address === undefined ? 'empty' : ''}`;
@@ -165,7 +163,7 @@ export default class SendComponent extends Component {
             }
         }
 
-        var claimButtonLabel = `Claim ${ amountToClaimBTC } BCH`;
+        var claimButtonLabel = `Recover ${ amountToClaimBTC } BTC`;
         var amoutIsValid = true;
         if(amountToClaim < 0){
             amoutIsValid = false;
@@ -176,19 +174,13 @@ export default class SendComponent extends Component {
         
         return (
             <section className="component-send">
-                <h3>Claim Bcash to your wallet</h3>
+                <h3>Recover your bitcoins</h3>
 
                 <Message 
                     header="Failed to send transaction."
                     success={ success } 
                     error={ error }
                     hideError={ props.hideError } />
-
-                <article className="info" style="margin-top: 10px;">
-                    <h4>Important Information</h4>
-                    <p>Bitcoin Cash/Bcash (BCH) Wallet is back online in TREZOR Wallet. However, we cannot fully guarantee the stability of our backend server yet. Therefore, we recommend you to claim your BCH coins to a third-party wallet, such as an exchange.</p>
-                    <p><strong>You may claim your BCH coins directly into a third-party wallet, using this tool.</strong></p>
-                </article>
 
                 <fieldset className={ formClassName }>
                     <p>
@@ -206,7 +198,7 @@ export default class SendComponent extends Component {
                         <p>
                             <label className="targetAddressLabel" for="address">Target Address</label>
                             <span className="address-input">
-                                <input id="address" type="text" placeholder="Please make sure it's a BCH address!" value={ this.state.address } onInput={ event => this.onAddressChange(event) } />
+                                <input id="address" type="text" placeholder="Please make sure it's a BTC address!" value={ this.state.address } onInput={ event => this.onAddressChange(event) } />
                                 <button onClick={ () => this.resetAddress() }>
                                     <span>Set address from TREZOR</span>
                                 </button>
@@ -218,27 +210,19 @@ export default class SendComponent extends Component {
                         <p>
                             <label>Amount</label>
                             <input type="text" value={ amountToClaimBTC } disabled />
-                            <span className={ amountHintClassName }>
-                                You can claim { satoshi2btc(account.availableBCH) } BCH
-                                <div className="amount-tooltip">
-                                    If the number does not match your BTC account balance, then you probably received additional BTC after the chain-split.<br/>
-                                    These cannot be claimed as BCH.
-                                </div>
-                            </span>
                         </p>
                         <p>
                             <label>Fee</label>
                             <select value={ selectedFee } onChange={ event => this.changeFee(event) }>
                                 { feeSelect }
                             </select>
-                            <span>{ satoshi2btc(fee) } BCH</span>
+                            <span>{ satoshi2btc(fee) } BTC</span>
                         </p>
                     </div>
                     <p className="claim-button">
                         <button 
                             onClick={ () => props.send(account, this.state.address, amountToClaim) }
                             disabled={ !addressIsValid || !amoutIsValid || address === undefined }>{ claimButtonLabel }</button>
-                        <span>Your funds will be deposed in TREZOR Bcash {account.name}</span>
                     </p>
                     <div className="empty-account">
                         <p>
