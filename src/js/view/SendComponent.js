@@ -128,20 +128,19 @@ export default class SendComponent extends Component {
         const advancedSettingsButtonClassName = `show-advanced-settings ${ advanced ? 'opened' : '' }`;
         const advancedSettingsButtonLabel = advanced ? 'Hide advanced settings' : 'Show advanced settings';
         const advancedSettingsClassName = `advanced-settings ${ advanced ? 'opened' : '' }`;
-        const amountHintClassName = `amount-hint ${ (account.balance !== account.availableBCH) ? 'warning' : '' }`;
 
         // target address validation
         var formClassName = useTrezorAccounts ? 'valid' : 'not-bch-account';
         var addressHint;
         if (!addressIsValid) {
-            addressHint = 'Not a valid address';
+            addressHint = "Not a valid address";
             formClassName = useTrezorAccounts ? 'not-valid' : 'not-valid not-bch-account';
         } else if (useTrezorAccounts) {
             if (!isBitcoinCashAccount(trezorAccounts, usedTrezorAccounts, address)) {
-                addressHint = 'Possibly not a TREZOR account, please double check it!';
+                addressHint = "Possibly not a TREZOR account, please double check it!";
                 formClassName = 'foreign-address';
             } else {
-                addressHint = `Bitcoin Account in TREZOR`;
+                addressHint = "Bitcoin Account in TREZOR";
                 formClassName = 'valid';
             }
         } else {
