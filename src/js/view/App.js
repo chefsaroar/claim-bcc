@@ -227,7 +227,7 @@ export default class App extends Component {
             }
         ];
 
-        cosnole.log("SignTx params", inputs, outputs);
+        console.log("SignTx params", inputs, outputs);
         TrezorConnect.signTx(inputs, outputs, response => {
             console.log("SingTx", response)
             if(response.success){

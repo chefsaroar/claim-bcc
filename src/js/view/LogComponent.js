@@ -1,6 +1,6 @@
 import { h, Component } from 'preact';
 
-export default class DebugComponent extends Component {
+export default class LogComponent extends Component {
 
     constructor(props) {
         super(props);
