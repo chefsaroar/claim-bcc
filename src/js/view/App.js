@@ -2,6 +2,7 @@ import { h, Component } from 'preact';
 import HeaderComponent from './HeaderComponent';
 import Home from './HomeComponent';
 import Send from './SendComponent';
+import Log from './LogComponent';
 
 import { getBitcoinCashPathFromIndex, getSplitBlock } from '../utils/utils';
 
@@ -13,7 +14,7 @@ export default class App extends Component {
         super(props);
 
         this.state = {
-            
+            log: false,
             block: null,
             activeAccount: 0,
             // useTrezorAccounts: false,
@@ -190,6 +191,22 @@ export default class App extends Component {
         });
     }
 
+    showLog():void {
+        setTimeout(() => {
+            window.scrollTo(0, document.body.scrollHeight);
+        }, 100);
+        
+        this.setState({
+            log: !this.state.log
+        });
+    }
+
+    hideLog(): void {
+        this.setState({
+            log: false
+        });
+    }
+
     signTX(account: Object, bchAddress: number, amount: number): void {
 
         let inputs = [];
@@ -210,6 +227,7 @@ export default class App extends Component {
             }
         ];
 
+        cosnole.log("SignTx params", inputs, outputs);
         TrezorConnect.signTx(inputs, outputs, response => {
             console.log("SingTx", response)
             if(response.success){
@@ -326,9 +344,10 @@ export default class App extends Component {
                 <HeaderComponent />
                 <main>
                     { view }
+                    <Log displayed={ this.state.log } hideLog={ this.hideLog.bind(this) } />
                 </main>
                 <footer>
-                    <span>© 2017</span> <a href="">SatoshiLabs</a>
+                    <span>© 2017</span> <a href="http://satoshilabs.com">SatoshiLabs</a> | <a onClick={ this.showLog.bind(this) }>Show log</a>
                 </footer>
             </div>
         );
