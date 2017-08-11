@@ -55,7 +55,6 @@ export default class SendComponent extends Component {
         }
         return {
             accountId: props.account.id,
-            //address: props.account.bitcoinAddress,
             address: address,
             addressIsValid: addressIsValid,
             advanced: props.useTrezorAccounts ? advanced : true,
@@ -87,7 +86,7 @@ export default class SendComponent extends Component {
 
     resetAddress() {
         this.setState({
-            address: this.props.trezorAccounts.length > 0 ? this.props.trezorAccounts[0].address : this.props.accounts[0].bitcoinAddress,
+            address: this.props.trezorAccounts.length > 0 ? this.props.trezorAccounts[0].address : "",
             addressIsValid: true
         });
     }
@@ -99,6 +98,36 @@ export default class SendComponent extends Component {
             advanced: !this.state.advanced
         });
     }
+
+
+    // selectAddress(addr) {
+    //     console.log("ADDR", addr)
+    //     this.setState({
+    //         address: addr,
+    //         addressDropdown: null
+    //     });
+    // }
+
+    // onInputFocus(event) {
+
+    //     let dn = (
+    //         <div class="address-dropdown">
+    //             <div onClick={ (event) => { this.selectAddress("ABC") } }>Account #1</div>
+    //             <div>Account #2</div>
+    //             <div>Account #3</div>
+    //         </div>
+    //     );
+    //     this.setState({
+    //         addressDropdown: dn
+    //     });
+    // }
+
+    // onInputBlur(event) {
+    //     //console.log("BLUR", event)
+    //     // this.setState({
+    //     //     addressDropdown: null
+    //     // });
+    // }
     
 
     render(props) {
@@ -173,7 +202,7 @@ export default class SendComponent extends Component {
         
         return (
             <section className="component-send">
-                <h3>Recover your bitcoins</h3>
+                <h3>Recover your Bitcoins</h3>
 
                 <Message 
                     header="Failed to send transaction."
@@ -197,7 +226,15 @@ export default class SendComponent extends Component {
                         <p>
                             <label className="targetAddressLabel" for="address">Target Address</label>
                             <span className="address-input">
-                                <input id="address" type="text" placeholder="Please make sure it's a BTC address!" value={ this.state.address } onInput={ event => this.onAddressChange(event) } />
+                                <input 
+                                    id="address" 
+                                    type="text" 
+                                    placeholder="Please make sure it's a BTC address!" 
+                                    value={ this.state.address }
+                                    //onFocus={ event => this.onInputFocus(event) }
+                                    //onBlur={ event => this.onInputBlur(event) }
+                                    onInput={ event => this.onAddressChange(event) } />
+                                { this.state.addressDropdown }
                                 <button onClick={ () => this.resetAddress() }>
                                     <span>Set address from TREZOR</span>
                                 </button>

@@ -52,7 +52,7 @@ export default class App extends Component {
             //     { name: "Normal", maxFee: 10000 },
             //     { name: "Low", maxFee: 100 },
             // ],
-            //error: "some error"
+            // error: "some error"
         };
 
         getSplitBlock().then(json => {
@@ -67,7 +67,7 @@ export default class App extends Component {
     getAccounts(): void {
 
         TrezorConnect.setAccountDiscoveryLimit(30);
-        TrezorConnect.setAccountDiscoveryGapLength(100);
+        //TrezorConnect.setAccountDiscoveryGapLength(100);
         TrezorConnect.setAccountDiscoveryBip44CoinType(145);
 
         TrezorConnect.claimBitcoinCashAccountsInfo(response => {
@@ -75,11 +75,11 @@ export default class App extends Component {
                 console.log("Accounts", response);
                 let accounts = [];
                 
-                let accountsLen = response.accounts.length - 1;
-                for(let [index, account] of response.accounts.entries()){
+                let accountsLen = response.claimBcashAccounts.length - 1;
+                for(let [index, account] of response.claimBcashAccounts.entries()){
                     
                     // ignore last empty account
-                    if(index > 0 && index === accountsLen && account.addressId === 0 && account.balance === 0 ) {
+                    if(index > 0 && index === accountsLen && account.addressId === 0 && account.balance === 0) {
                         continue;
                     }
 
@@ -97,7 +97,7 @@ export default class App extends Component {
                     account.unspents = availableUnspents;
 
                     // find claimed transaction in local storage
-                    let hashHex = window.localStorage.getItem(account.bitcoinAddress);
+                    let hashHex = window.localStorage.getItem(account.address);
                     if(hashHex){
                         account.transactionSuccess = {
                             url: `${this.state.bitcoreApiUrl}tx/${hashHex}`,
@@ -108,26 +108,19 @@ export default class App extends Component {
                 }
 
                 if(this.state.useTrezorAccounts){
-
                     // filter trezor accounts without transactions with fallback
 
-                    this.getEmptyAccounts(accounts)
-                    .then(({ trezorAccounts, usedTrezorAccounts }) => {
-                        this.setState({ 
-                            accounts: accounts,
-                            trezorAccounts: trezorAccounts,
-                            usedTrezorAccounts: usedTrezorAccounts,
-                            fees: response.fees,
-                            error: null
-                        });
-                    }).catch(error => {
-                        this.setState({ 
-                            accounts: accounts,
-                            trezorAccounts: [],
-                            usedTrezorAccounts: [],
-                            fees: response.fees,
-                            error: null
-                        });
+                    let trezorAddresses = [];
+                    for (let addr of response.btcAddresses) {
+                        trezorAddresses.push({ address: addr });
+                    }
+
+                    this.setState({ 
+                        accounts: accounts,
+                        trezorAccounts: trezorAddresses,
+                        usedTrezorAccounts: [],
+                        fees: response.fees,
+                        error: null
                     });
                 }else{
                     this.setState({ 
@@ -147,19 +140,6 @@ export default class App extends Component {
                 });
             }
         }, TREZOR_FIRMWARE);
-    }
-
-    async getEmptyAccounts(accounts): Array<Object> {
-        let trezorAccounts = [];
-        let usedTrezorAccounts = [];
-
-        for(let account of accounts){
-            trezorAccounts.push({
-                address: account.bitcoinAddress,
-                path: account.bitcoinAddressPath
-            });
-        }
-        return { trezorAccounts: trezorAccounts, usedTrezorAccounts: usedTrezorAccounts }
     }
 
     selectAccount(index: number): void {
@@ -192,8 +172,6 @@ export default class App extends Component {
     }
 
     signTX(account: Object, btcAddress: number, amount: number): void {
-
-        
 
         let inputs = [];
         for(let input of account.unspents){
@@ -236,7 +214,7 @@ export default class App extends Component {
                         usedTrezorAccounts.push(this.state.trezorAccounts[0]);
 
                         // store tx in local storage
-                        window.localStorage.setItem(account.bitcoinAddress, hashHex);
+                        window.localStorage.setItem(account.address, hashHex);
 
                         // update view
                         this.setState({
@@ -284,7 +262,7 @@ export default class App extends Component {
         // usedTrezorAccounts.push(this.state.trezorAccounts[0]);
         // newTrezorAccounts.splice(0, 1);
 
-        // window.localStorage.setItem(account.bitcoinAddress, hashHex);
+        // window.localStorage.setItem(account.address, hashHex);
 
         // this.setState({
         //     accounts: newAccounts,
