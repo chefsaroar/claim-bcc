@@ -228,9 +228,11 @@ export default class App extends Component {
         ];
 
         console.log("SignTx params", inputs, outputs);
+        TrezorConnect.closeAfterSuccess(false);
         TrezorConnect.signTx(inputs, outputs, response => {
             console.log("SingTx", response)
             if(response.success){
+                TrezorConnect.closeAfterSuccess(true);
                 TrezorConnect.pushTransaction(response.serialized_tx, pushResult => {
                     console.log("pushTransaction", pushResult)
                     if (pushResult.success) {
