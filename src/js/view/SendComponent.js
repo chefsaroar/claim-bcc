@@ -215,8 +215,8 @@ export default class SendComponent extends Component {
                             <span className={ amountHintClassName }>
                                 You can claim { satoshi2btc(account.availableBCH) } BCH
                                 <div className="amount-tooltip">
-                                    If the number does not match your BTC account balance, then you probably received additional BTC after the chain-split.<br/>
-                                    These cannot be claimed as BCH.
+                                    Due to the transaction size limitations, you cannot claim all your BCH at once.<br/>
+                                    After this transaction, please run the tool again to claim the rest.
                                 </div>
                             </span>
                         </p>
