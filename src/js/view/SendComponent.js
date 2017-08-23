@@ -113,7 +113,7 @@ export default class SendComponent extends Component {
         // form values
 
         const accountSelect = props.accounts.map((account, index) => 
-            <option value={index}>{ account.name }  / { satoshi2btc(account.availableBCH) } BCH</option>
+            <option value={index}>{ account.name }  / { satoshi2btc(account.balance) } BCH</option>
         );
         
         const feeSelect = props.fees.map((fee, index) => 
@@ -183,12 +183,6 @@ export default class SendComponent extends Component {
                     success={ success } 
                     error={ error }
                     hideError={ props.hideError } />
-
-                {/* <article className="info" style="margin-top: 10px;">
-                    <h4>Important Information</h4>
-                    <p>Bitcoin Cash/Bcash (BCH) Wallet is back online in TREZOR Wallet. However, we cannot fully guarantee the stability of our backend server yet. Therefore, we recommend you to claim your BCH coins to a third-party wallet, such as an exchange.</p>
-                    <p><strong>You may claim your BCH coins directly into a third-party wallet, using this tool.</strong></p>
-                </article> */}
 
                 <fieldset className={ formClassName }>
                     <p>

@@ -7,6 +7,7 @@ import Log from './LogComponent';
 import { getBitcoinCashPathFromIndex, getSplitBlock } from '../utils/utils';
 
 const TREZOR_FIRMWARE = '1.5.1';
+const INPUT_LIMIT = 350;
 
 export default class App extends Component {
 
@@ -87,11 +88,15 @@ export default class App extends Component {
                     
                     // filter available unspents
                     let availableUnspents = [];
-                    for(let unspent of account.unspents){
-                        //if(unspent.height <= this.state.block){
-                            account.availableBCH += unspent.value;
-                            availableUnspents.push(unspent);
-                        //}
+                    let i, unspent, len = account.unspents.length;
+                    if (len > INPUT_LIMIT) {
+                        len = INPUT_LIMIT;
+                        account.inputLimitExceeded = true;
+                    }
+                    for (i = 0 ; i < len; i++) {
+                        unspent = account.unspents[i];
+                        account.availableBCH += unspent.value;
+                        availableUnspents.push(unspent);
                     }
                     account.unspents = availableUnspents;
 
@@ -240,8 +245,16 @@ export default class App extends Component {
                         let hashHex = pushResult.txid;
                         let index = this.state.activeAccount;
                         let newAccounts = [ ...this.state.accounts ];
-                        newAccounts[index].balance = 0;
-                        newAccounts[index].availableBCH = 0;
+                        if (account.inputLimitExceeded) {
+                            newAccounts[index].balance -= amount;
+                            newAccounts[index].availableBCH = 0;
+                        } else {
+                            newAccounts[index].balance = 0;
+                            newAccounts[index].availableBCH = 0;
+                            // store tx in local storage
+                            window.localStorage.setItem(account.bitcoinCashAddress, hashHex);
+                        }
+                        
                         newAccounts[index].transactionSuccess = {
                             url: `${this.state.bitcoreApiUrl}tx/${hashHex}`,
                             hashHex: hashHex
@@ -250,9 +263,6 @@ export default class App extends Component {
                         newBccAccounts.splice(0, 1);
                         let usedBchAccounts = [ ...this.state.usedBchAccounts ];
                         usedBchAccounts.push(this.state.bchAccounts[0]);
-
-                        // store tx in local storage
-                        window.localStorage.setItem(account.bitcoinCashAddress, hashHex);
 
                         // update view
                         this.setState({
