@@ -45,8 +45,8 @@ export function getBitcoinCashPathFromIndex(index: number): Array<number> {
     ];
 }
 
-export function isBitcoinCashAccount(bchAccounts, usedBchAccounts, address): boolean {
-    let accounts = [...bchAccounts, ...usedBchAccounts];
+export function isTrezorAccount(trezorAccounts, usedAccounts, address): boolean {
+    let accounts = [...trezorAccounts, ...usedAccounts];
     for(let account of accounts) {
         if(account.address === address) {
             return true;

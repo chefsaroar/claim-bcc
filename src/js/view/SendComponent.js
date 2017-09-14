@@ -1,13 +1,17 @@
 import { h, Component } from 'preact';
 import bitcoinjs from 'bitcoinjs-lib';
-import { satoshi2btc, getValidInputs, calculateFee, isBitcoinCashAccount } from '../utils/utils';
+import { satoshi2btc, getValidInputs, calculateFee, isTrezorAccount } from '../utils/utils';
 import Message from './MessageComponent';
+import SelectComponent from './SelectComponent';
 
 const initalState = {
     accountId: -1,
-    advanced: false,
+    advanced: true,
     address: undefined,
     addressIsValid: true,
+    addressFromTrezor: true,
+    addressDropdownAvailable: true,
+    addressDropdownOpened: false,
     selectedFee: 1,
     fee: 0
 };
@@ -24,24 +28,22 @@ export default class SendComponent extends Component {
 
     // handle account change (component update)
     componentWillReceiveProps(props) {
-        //if(props.account.id !== this.state.accountId) {
-            this.setState({
-                ...initalState,
-                ...this.getAccountState(props, this.state)
-            });
-        //}
+        this.setState({
+            ...initalState,
+            ...this.getAccountState(props, this.state)
+        });
     }
 
     // set state values on init (constructor) or account change (componentWillReceiveProps)
     getAccountState(props, state) {
 
         // corner case:
-        // after account selection availableBCH - fee <= 0 (fee Normal, which is set as default)
+        // after account selection available - fee <= 0 (fee Normal, which is set as default)
         // try to set fee as Low, recalculate fee and open advanced tab
         let fee = calculateFee(props.account.unspents.length, 1, props.fees[ state.selectedFee ].maxFee);
         let selectedFee = state.selectedFee;
         let advanced = state.advanced;
-        if (props.account.availableBCH - fee <= 0){
+        if (props.account.available - fee <= 0){
             advanced = true;
             selectedFee = props.fees.length - 1;
             fee = calculateFee(props.account.unspents.length, 1, props.fees[ selectedFee ].maxFee);
@@ -68,6 +70,7 @@ export default class SendComponent extends Component {
         this.setState({
             selectedFee: value,
             fee: calculateFee(this.props.account.unspents.length, 1, this.props.fees[ value ].maxFee)
+            //fee: calculateFee(this.props.account.unspents.length, 1, 12)
         });
     }
 
@@ -75,19 +78,29 @@ export default class SendComponent extends Component {
         let value = event.currentTarget.value;
         let valid;
         try {
-            valid = bitcoinjs.address.toOutputScript(value, bitcoinjs.networks.bitcoin);
+            valid = bitcoinjs.address.toOutputScript(value, this.props.originAccount.short === 'LTC' ? bitcoinjs.networks.litecoin : bitcoinjs.networks.bitcoin);
         } catch ( error ) { }
+
+        let fromTrezor = false;
+        if (valid) {
+            fromTrezor = isTrezorAccount(this.props.trezorAccounts, [], value);
+        }
 
         this.setState({
             address: value,
             addressIsValid: typeof valid !== 'undefined',
+            addressFromTrezor: fromTrezor,
+            addressDropdownAvailable: fromTrezor
         });
     }
 
     resetAddress() {
         this.setState({
             address: this.props.trezorAccounts.length > 0 ? this.props.trezorAccounts[0].address : "",
-            addressIsValid: true
+            addressIsValid: true,
+            addressFromTrezor: true,
+            addressDropdownAvailable: true,
+            addressDropdownOpened: false
         });
     }
 
@@ -100,57 +113,65 @@ export default class SendComponent extends Component {
     }
 
 
-    // selectAddress(addr) {
-    //     console.log("ADDR", addr)
-    //     this.setState({
-    //         address: addr,
-    //         addressDropdown: null
-    //     });
-    // }
+    selectAddress(addr) {
+        this.setState({
+            address: addr,
+            addressDropdownOpened: false
+        });
+    }
 
-    // onInputFocus(event) {
+    onInputFocus(event) {
+        event.currentTarget.setAttribute("spellcheck", "false");
+        this.setState({
+            addressDropdownOpened: this.state.addressDropdownAvailable
+            //addressDropdownOpened: true
+        });
+    }
 
-    //     let dn = (
-    //         <div class="address-dropdown">
-    //             <div onClick={ (event) => { this.selectAddress("ABC") } }>Account #1</div>
-    //             <div>Account #2</div>
-    //             <div>Account #3</div>
-    //         </div>
-    //     );
-    //     this.setState({
-    //         addressDropdown: dn
-    //     });
-    // }
-
-    // onInputBlur(event) {
-    //     //console.log("BLUR", event)
-    //     // this.setState({
-    //     //     addressDropdown: null
-    //     // });
-    // }
+    onInputBlur(event) {
+        setTimeout(() => {
+            this.setState({
+                addressDropdownOpened: false
+            });
+        }, 250);
+    }
     
 
     render(props) {
 
-        const { accountId, advanced, address, addressIsValid, selectedFee, fee } = this.state;
+        const { accountId, advanced, address, addressIsValid, addressFromTrezor, addressDropdownAvailable, addressDropdownOpened, selectedFee, fee } = this.state;
 
         // no account is set in state yet, don't render anything...
         if(accountId < 0) return null;
 
-        const { account, trezorAccounts, usedTrezorAccounts, useTrezorAccounts, success, error } = props;
+        const { account, originAccount, trezorAccounts, useTrezorAccounts, success, error } = props;
 
         // form values
 
-        const accountSelect = props.accounts.map((account, index) => 
-            <option value={index}>{ account.name }  / { satoshi2btc(account.availableBCH) } BTC</option>
-        );
+        const akk = [];
+        const accountSelect = props.accounts.map((account, index) => {
+            akk.push( { id: index, name: account.name } );
+            return (<option value={index}>{ account.name }  / { satoshi2btc(account.available) } { originAccount.short }</option>);
+        });
         
         const feeSelect = props.fees.map((fee, index) => 
             <option value={index}>{ fee.name }</option>
         );
 
-        const amountToClaim = account.availableBCH - fee;
-        var amountToClaimBTC = satoshi2btc(amountToClaim); 
+        const amountToClaim = account.available - fee;
+        let amoutToClaimString = satoshi2btc(amountToClaim);
+
+        let addressDropdown = null;
+        if (addressDropdownOpened && addressDropdownAvailable) {
+            const addrList = trezorAccounts.map((addr, index) => 
+                <div onClick={ (event) => { this.selectAddress(addr.address) } }>{ originAccount.simpleName } { addr.name }</div>
+            );
+            addressDropdown = (
+                <div class="address-dropdown">
+                    { addrList }
+                </div>
+            );
+        }
 
         // css classNames and labels
 
@@ -165,44 +186,50 @@ export default class SendComponent extends Component {
             addressHint = "Not a valid address";
             formClassName = useTrezorAccounts ? 'not-valid' : 'not-valid not-bch-account';
         } else if (useTrezorAccounts) {
-            if (!isBitcoinCashAccount(trezorAccounts, usedTrezorAccounts, address)) {
+            if (!addressFromTrezor) {
                 addressHint = "Possibly not a TREZOR account, please double check it!";
                 formClassName = 'foreign-address';
             } else {
-                addressHint = "Bitcoin Account in TREZOR";
+                addressHint = `${ originAccount.simpleName } Account in TREZOR`;
                 formClassName = 'valid';
             }
         } else {
             formClassName = `not-bch-account ${ address === '' || address === undefined ? 'empty' : ''}`;
         }
 
-        // disable form if amount <= 0 or availableBCH == 0
-        var emptyAccountHint = "You don't have enought funds in your account.";
-        if (account.availableBCH === 0) {
+        // disable form if amount <= 0 or available == 0
+        var emptyAccountHint = "You don't have funds in this account.";
+        if (account.available === 0) {
             formClassName = 'disabled';
             if(success) {
-                emptyAccountHint = "You have already claimed.";
-            }else if (account.balance === 0) {
-                formClassName = 'disabled warning';
-                emptyAccountHint = "You don't have enough funds in your account.";
+                emptyAccountHint = `Your ${ originAccount.simpleName } has been successfully recovered.`;
             } else {
-                formClassName = 'disabled warning not-empty';
-                emptyAccountHint = "Your BTC was received after the chain-split.";
+                formClassName = 'disabled warning';
+                emptyAccountHint = "You don't have funds in this account.";
             }
         }
 
-        var claimButtonLabel = `Recover ${ amountToClaimBTC } BTC`;
+        var claimButtonLabel = `Recover ${ amoutToClaimString } ${ originAccount.short }`;
         var amoutIsValid = true;
         if(amountToClaim < 0){
             amoutIsValid = false;
-            amountToClaimBTC = 0;
+         amoutToClaimString = 0;
             claimButtonLabel = "Amount is too low!";
             formClassName += ' low-amount';
         }
         
+        let header = "Recover your Bitcoins";
+        if (originAccount.short === 'BCH') {
+            header = "Recover your Bitcoin Cash";
+        } else if (originAccount.short === 'LTC') {
+            header = "Recover your Litecoins";
+        }
+
+        const inputPlaceholder = `Please make sure it's a ${ originAccount.simpleName } address!`;
+
         return (
             <section className="component-send">
-                <h3>Recover your Bitcoins</h3>
+                <h3>{ header }</h3>
 
                 <Message 
                     header="Failed to send transaction."
@@ -218,6 +245,12 @@ export default class SendComponent extends Component {
                             onChange={ event => props.selectAccount(event.currentTarget.selectedIndex) }>
                             { accountSelect }
                         </select>
+                        {/* <SelectComponent 
+                            type="origin"
+                            selected={ akk[account.id] }
+                            options= { akk }
+                            onSelect={ (event, item) => { props.selectAccount(item.id) } }
+                            /> */}
                     </p>
                     <div className={ advancedSettingsButtonClassName }>
                         <a href="#" onClick={ event => this.toggleAdvanced(event) }>{ advancedSettingsButtonLabel }</a>
@@ -229,12 +262,16 @@ export default class SendComponent extends Component {
                                 <input 
                                     id="address" 
                                     type="text" 
-                                    placeholder="Please make sure it's a BTC address!" 
+                                    placeholder={ inputPlaceholder } 
                                     value={ this.state.address }
-                                    //onFocus={ event => this.onInputFocus(event) }
-                                    //onBlur={ event => this.onInputBlur(event) }
+                                    autocomplete="off"
+                                    autocorrect="off"
+                                    autocapitalize="off" 
+                                    spellcheck="false"
+                                    onFocus={ event => this.onInputFocus(event) }
+                                    onBlur={ event => this.onInputBlur(event) } 
                                     onInput={ event => this.onAddressChange(event) } />
-                                { this.state.addressDropdown }
+                                { addressDropdown }
                                 <button onClick={ () => this.resetAddress() }>
                                     <span>Set address from TREZOR</span>
                                 </button>
@@ -245,14 +282,14 @@ export default class SendComponent extends Component {
                         </p>
                         <p>
                             <label>Amount</label>
-                            <input type="text" value={ amountToClaimBTC } disabled />
+                            <input type="text" value={ amoutToClaimString } disabled />
                         </p>
                         <p>
                             <label>Fee</label>
                             <select value={ selectedFee } onChange={ event => this.changeFee(event) }>
                                 { feeSelect }
                             </select>
-                            <span>{ satoshi2btc(fee) } BTC</span>
+                            <span>{ satoshi2btc(fee) } { originAccount.short }</span>
                         </p>
                     </div>
                     <p className="claim-button">

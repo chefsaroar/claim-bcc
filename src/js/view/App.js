@@ -5,6 +5,8 @@ import Send from './SendComponent';
 import Log from './LogComponent';
 
 import { getBitcoinCashPathFromIndex, getSplitBlock } from '../utils/utils';
+import data from '../utils/data';
+
 
 const TREZOR_FIRMWARE = '1.5.1';
 
@@ -15,122 +17,93 @@ export default class App extends Component {
 
         this.state = {
             log: false,
-            block: null,
+            block: 1,
+            useTrezorAccounts: true,
             activeAccount: 0,
-            // useTrezorAccounts: false,
-            // accounts: [ 
-            //     { name: 'Account #1', 
-            //       id: 0,
-            //       balance: 300000,
-            //       availableBCH: 300000,
-            //       unspents: [1],
-            //       bitcoinCashAddress: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhT',
-            //       transactionSuccess: { hashHex: '1924a52b1f97797dc1c072895d6441b96f28b8b4637bd0130eab3d32ef2be17e' } 
-            //     },
-            //     { name: 'Account #2',
-            //       id: 1,
-            //       balance: 10000000000,
-            //       availableBCH: 50000000,
-            //       unspents: [1,2],
-            //       bitcoinCashAddress: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhZ'
-            //     },
-            //     { name: 'Account #3',
-            //       id: 1,
-            //       balance: 10000000000,
-            //       availableBCH: 50000000,
-            //       unspents: [1,2],
-            //       bitcoinCashAddress: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhZ'
-            //     } 
-            // ],
-            // trezorAccounts: [
-            //     // { address: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhTa', path: '1'},
-            //     // { address: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhT', path: '2'},
-            //     // { address: '1JEcxcVQ7vFfCmLnms1Cf9G1NaNbGnHPhT', path: '3'},
-            // ],
-            // fees: [
-            //     { name: "High", maxFee: 20000 },
-            //     { name: "Normal", maxFee: 10000 },
-            //     { name: "Low", maxFee: 100 },
-            // ],
-            // error: "some error"
+            //...data
         };
 
-        getSplitBlock().then(json => {
-            this.setState({
-                block: json.block,
-                useTrezorAccounts: json.useBchAccounts,
-                bitcoreApiUrl: 'https://btc-bitcore1.trezor.io/'
-            });
-        })
+        // getSplitBlock().then(json => {
+        //     this.setState({
+        //         block: json.block,
+        //         useTrezorAccounts: json.useBchAccounts,
+        //         bitcoreApiUrl: 'https://btc-bitcore1.trezor.io/'
+        //     });
+        // })
     }
 
-    getAccounts(): void {
+    getAccounts(origin, destination): void {
 
         TrezorConnect.setAccountDiscoveryLimit(30);
         //TrezorConnect.setAccountDiscoveryGapLength(100);
-        TrezorConnect.setAccountDiscoveryBip44CoinType(145);
+        //TrezorConnect.setAccountDiscoveryBip44CoinType(145);
+        // TrezorConnect.closeAfterSuccess(false);
+        // TrezorConnect.closeAfterFailure(false);
 
-        TrezorConnect.claimBitcoinCashAccountsInfo(response => {
+        TrezorConnect.recoverCoins(origin, destination, response => {
+
             if(response.success){
                 console.log("Accounts", response);
                 let accounts = [];
-                
-                let accountsLen = response.claimBcashAccounts.length - 1;
-                for(let [index, account] of response.claimBcashAccounts.entries()){
+                let activeAccount = -1;
+                let accountsLen = response.originAccounts.length - 1;
+                for(let [index, account] of response.originAccounts.entries()){
                     
                     // ignore last empty account
-                    if(index > 0 && index === accountsLen && account.addressId === 0 && account.balance === 0) {
-                        continue;
-                    }
-
                     account.name = `Account #${(account.id + 1)}`;
-                    account.availableBCH = 0;
+                    account.available = 0;
                     
                     // filter available unspents
                     let availableUnspents = [];
-                    for(let unspent of account.unspents){
-                        //if(unspent.height <= this.state.block){
-                            account.availableBCH += unspent.value;
-                            availableUnspents.push(unspent);
-                        //}
+                    for(let unspent of account.info.utxos){
+                        account.available += unspent.value;
+                        availableUnspents.push(unspent);
                     }
                     account.unspents = availableUnspents;
 
-                    // find claimed transaction in local storage
-                    let hashHex = window.localStorage.getItem(account.address);
-                    if(hashHex){
-                        account.transactionSuccess = {
-                            url: `${this.state.bitcoreApiUrl}tx/${hashHex}`,
-                            hashHex: hashHex
-                        }
+                    if (account.available > 0 && activeAccount < 0) {
+                        activeAccount = index;
                     }
+
+                    // find claimed transaction in local storage
+                    // let hashHex = window.localStorage.getItem(account.address);
+                    // if(hashHex){
+                    //     account.transactionSuccess = {
+                    //         url: `${this.state.bitcoreApiUrl}tx/${hashHex}`,
+                    //         hashHex: hashHex
+                    //     }
+                    // }
                     accounts.push(account);
                 }
 
-                if(this.state.useTrezorAccounts){
-                    // filter trezor accounts without transactions with fallback
+                if (activeAccount < 0) activeAccount = 0;
 
-                    let trezorAddresses = [];
-                    for (let addr of response.btcAddresses) {
-                        trezorAddresses.push({ address: addr });
-                    }
-
-                    this.setState({ 
-                        accounts: accounts,
-                        trezorAccounts: trezorAddresses,
-                        usedTrezorAccounts: [],
-                        fees: response.fees,
-                        error: null
-                    });
-                }else{
-                    this.setState({ 
-                        accounts: accounts,
-                        trezorAccounts: [],
-                        usedTrezorAccounts: [],
-                        fees: response.fees,
-                        error: null
-                    });
+                const fees = [];
+                for (let f in response.fees) {
+                    fees.push({
+                        name: f,
+                        maxFee: response.fees[f]
+                    })
                 }
+                fees.reverse();
+
+                let trezorAddresses = [];
+                if(this.state.useTrezorAccounts){
+                    for (let acc of response.originAddresses) {
+                        trezorAddresses.push({ address: acc.info.unusedAddresses[0], name: `Account #${(acc.id + 1)}` });
+                    }
+                }
+
+                this.setState({ 
+                    activeAccount: activeAccount,
+                    accounts: accounts,
+                    originAccount: origin,
+                    destinationAccount: destination,
+                    trezorAccounts: trezorAddresses,
+                    fees: fees,
+                    error: null
+                });
+                
 
             }else{
                 window.scrollTo(0, 0);
@@ -171,107 +144,53 @@ export default class App extends Component {
         });
     }
 
-    signTX(account: Object, btcAddress: number, amount: number): void {
+    signTX(account: Object, address: number, amount: number): void {
+        console.log("SignTx params", account, address, amount);
 
-        let inputs = [];
-        for(let input of account.unspents){
-            inputs.push({
-                address_n: input.addressPath,
-                prev_index: input.vout,
-                prev_hash: input.txId,
-                amount: input.value
-            });
-        }
-
-        let outputs = [
+        const outputs = [
             {
-                address: btcAddress,
-                amount: amount,
-                script_type: 'PAYTOADDRESS'
+                address: address,
+                value: amount
             }
         ];
 
-        console.log("SignTx params", inputs, outputs);
-        TrezorConnect.signTx(inputs, outputs, response => {
+        TrezorConnect.closeAfterSuccess(false);
+        TrezorConnect.setBitcoreURLS(this.state.originAccount.bitcore);
+        TrezorConnect.recoverSignTx(account, account.info.utxos, outputs, response => {
             console.log("SingTx", response)
-            if(response.success){
-                TrezorConnect.pushTransaction(response.serialized_tx, pushResult => {
-                    console.log("pushTransaction", pushResult)
-                    if (pushResult.success) {
-                        // update cached values for account
-                        let hashHex = pushResult.txid;
-                        let index = this.state.activeAccount;
-                        let newAccounts = [ ...this.state.accounts ];
-                        newAccounts[index].balance = 0;
-                        newAccounts[index].availableBCH = 0;
-                        newAccounts[index].transactionSuccess = {
-                            url: `${this.state.bitcoreApiUrl}tx/${hashHex}`,
-                            hashHex: hashHex
-                        }
-                        let newTrezorAccounts = [ ...this.state.trezorAccounts ];
-                        newTrezorAccounts.splice(0, 1);
-                        let usedTrezorAccounts = [ ...this.state.usedTrezorAccounts ];
-                        usedTrezorAccounts.push(this.state.trezorAccounts[0]);
 
-                        // store tx in local storage
-                        window.localStorage.setItem(account.address, hashHex);
-
-                        // update view
-                        this.setState({
-                            accounts: newAccounts,
-                            trezorAccounts: newTrezorAccounts,
-                            usedTrezorAccounts: usedTrezorAccounts,
-                            error: null
-                        });
-                    } else {
-                        window.scrollTo(0, 0);
-                        console.error(pushResult.error);
-                        this.setState({
-                            error: pushResult.error.message
-                        });
+            TrezorConnect.closeAfterSuccess(true);
+            TrezorConnect.recoverPushTx(response.serialized_tx, pushResult => {
+                console.log("pushTransaction", pushResult)
+                if (pushResult.success) {
+                    // update cached values for account
+                    let hashHex = pushResult.txid;
+                    let index = this.state.activeAccount;
+                    let newAccounts = [ ...this.state.accounts ];
+                    newAccounts[index].balance = 0;
+                    newAccounts[index].available = 0;
+                    newAccounts[index].transactionSuccess = {
+                        url: `${this.state.originAccount.bitcore[0]}tx/${hashHex}`,
+                        hashHex: hashHex
                     }
-                });
-                
-            }else{
-                window.scrollTo(0, 0);
-                console.error(response.error);
-                this.setState({
-                    error: response.error
-                });
-            }
+
+                    // store tx in local storage
+                    // window.localStorage.setItem(account.address, hashHex);
+
+                    // update view
+                    this.setState({
+                        accounts: newAccounts,
+                        error: null
+                    });
+                } else {
+                    window.scrollTo(0, 0);
+                    console.error(pushResult.error);
+                    this.setState({
+                        error: pushResult.error.message
+                    });
+                }
+            });
         }, TREZOR_FIRMWARE);
-
-
-        // simulate error
-        // this.setState({
-        //     error: "Cancelled by user"
-        // });
-        // return;
-        // simulate success: update account
-        // let hashHex = '1234abcd';
-        // let index = this.state.activeAccount;
-        // let newAccounts = [ ...this.state.accounts ];
-        // newAccounts[index].availableBCH = 0;
-        // newAccounts[index].transactionSuccess = {
-        //     url: `${this.state.bitcoreApiUrl}tx/${hashHex}`,
-        //     hashHex: hashHex
-        // }
-
-        // let newTrezorAccounts = [ ...this.state.trezorAccounts ];
-        // let usedTrezorAccounts = [ ...this.state.usedTrezorAccounts ];
-        // usedTrezorAccounts.push(this.state.trezorAccounts[0]);
-        // newTrezorAccounts.splice(0, 1);
-
-        // window.localStorage.setItem(account.address, hashHex);
-
-        // this.setState({
-        //     accounts: newAccounts,
-        //     trezorAccounts: newTrezorAccounts,
-        //     usedTrezorAccounts: usedTrezorAccounts,
-        //     error: null
-        // });
-        // return;
-
     }
 
     render(props): void {
@@ -285,7 +204,7 @@ export default class App extends Component {
                         hideError={ this.hideError.bind(this) }
                          /> 
         } else {
-            const { accounts, trezorAccounts, usedTrezorAccounts, fees, activeAccount, success, error } = this.state;
+            const { accounts, originAccount, trezorAccounts, fees, activeAccount, success, error } = this.state;
             view = <Send 
                         // callbacks
                         send={ this.signTX.bind(this) } 
@@ -294,8 +213,8 @@ export default class App extends Component {
                         // data
                         useTrezorAccounts={ this.state.useTrezorAccounts && trezorAccounts.length > 0 }
                         accounts={ accounts }
+                        originAccount={ originAccount }
                         trezorAccounts={ trezorAccounts }
-                        usedTrezorAccounts={ usedTrezorAccounts }
                         fees={ fees }
                         account={ accounts[activeAccount] }
                         success={ accounts[activeAccount].transactionSuccess }

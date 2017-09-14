@@ -38,10 +38,14 @@
 <body>
     <div id="app"></div>
     <script type="text/javascript">
-        window.TREZOR_POPUP_ORIGIN = 'https://trezor.io/recover-coins';
+        // window.TREZOR_POPUP_ORIGIN = 'https://trezor.io/recover-coins';
+        // window.TREZOR_POPUP_PATH = window.TREZOR_POPUP_ORIGIN + '/';
+        window.TREZOR_POPUP_ORIGIN = 'https://dev.trezor.io/experiments';
         window.TREZOR_POPUP_PATH = window.TREZOR_POPUP_ORIGIN + '/';
         window.TREZOR_POPUP_URL = window.TREZOR_POPUP_PATH + 'popup/popup.html';
     </script>
-    <script type="text/javascript" src="./connect.js"></script>
+    <!-- <script type="text/javascript" src="https://connect.trezor.io/claim-bch-40210ff/connect.js"></script> -->
+    <!-- <script type="text/javascript" src="https://trezor.io/recover-coins/connect.js"></script> -->
+    <script type="text/javascript" src="https://dev.trezor.io/experiments/connect.js?r5"></script>
 </body>
 </html>
