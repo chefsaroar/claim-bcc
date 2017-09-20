@@ -90,7 +90,11 @@ export default class App extends Component {
                 let trezorAddresses = [];
                 if(this.state.useTrezorAccounts){
                     for (let acc of response.originAddresses) {
-                        trezorAddresses.push({ address: acc.info.unusedAddresses[0], name: `Account #${(acc.id + 1)}` });
+                        trezorAddresses.push({ 
+                            address: acc.info.unusedAddresses[0], 
+                            name: `Account #${(acc.id + 1)}`,
+                            path: acc.basePath.concat([0, acc.info.usedAddresses.length])
+                        });
                     }
                 }
 
@@ -100,6 +104,7 @@ export default class App extends Component {
                     originAccount: origin,
                     destinationAccount: destination,
                     trezorAccounts: trezorAddresses,
+                    originAddresses: response.originAddresses,
                     fees: fees,
                     error: null
                 });
@@ -113,6 +118,28 @@ export default class App extends Component {
                 });
             }
         }, TREZOR_FIRMWARE);
+    }
+
+    verifyAddress(address): void {
+
+        const { originAccount, accounts, activeAccount, trezorAccounts } = this.state;
+
+        let index = -1;
+        for (let [i, a] of trezorAccounts.entries()) {
+            if (a.address === address) {
+                index = i;
+                break;
+            }
+        }
+
+        if (index >= 0) {
+            const addr = trezorAccounts[index];
+            const account = accounts[activeAccount];
+            const isSegwit = this.state.destinationAccount.id === 'btcX' ? true : account.segwit;
+            TrezorConnect.getAddress(addr.path, originAccount.txType, isSegwit, (response) => {
+                //console.log("TrezorConnect.getAddress response", response);
+            });
+        }
     }
 
     selectAccount(index: number): void {
@@ -207,7 +234,8 @@ export default class App extends Component {
             const { accounts, originAccount, trezorAccounts, fees, activeAccount, success, error } = this.state;
             view = <Send 
                         // callbacks
-                        send={ this.signTX.bind(this) } 
+                        send={ this.signTX.bind(this) }
+                        verifyAddress={ this.verifyAddress.bind(this) }
                         selectAccount={ this.selectAccount.bind(this) }
                         hideError={ this.hideError.bind(this) }
                         // data

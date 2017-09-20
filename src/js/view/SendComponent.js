@@ -1,6 +1,6 @@
 import { h, Component } from 'preact';
 import bitcoinjs from 'bitcoinjs-lib';
-import { satoshi2btc, getValidInputs, calculateFee, isTrezorAccount } from '../utils/utils';
+import { satoshi2btc, getValidInputs, calculateFee, isTrezorAccount, trezorAccountLabel } from '../utils/utils';
 import Message from './MessageComponent';
 import SelectComponent from './SelectComponent';
 
@@ -135,7 +135,6 @@ export default class SendComponent extends Component {
             });
         }, 250);
     }
-    
 
     render(props) {
 
@@ -147,10 +146,7 @@ export default class SendComponent extends Component {
         const { account, originAccount, trezorAccounts, useTrezorAccounts, success, error } = props;
 
         // form values
-
-        const akk = [];
         const accountSelect = props.accounts.map((account, index) => {
-            akk.push( { id: index, name: account.name } );
             return (<option value={index}>{ account.name }  / { satoshi2btc(account.available) } { originAccount.short }</option>);
         });
         
@@ -190,7 +186,8 @@ export default class SendComponent extends Component {
                 addressHint = "Possibly not a TREZOR account, please double check it!";
                 formClassName = 'foreign-address';
             } else {
-                addressHint = `${ originAccount.simpleName } Account in TREZOR`;
+                //addressHint = `${ originAccount.simpleName } Account in TREZOR`;
+                addressHint = `${ originAccount.simpleName } ${ trezorAccountLabel(trezorAccounts, address) } in TREZOR`;
                 formClassName = 'valid';
             }
         } else {
@@ -245,12 +242,6 @@ export default class SendComponent extends Component {
                             onChange={ event => props.selectAccount(event.currentTarget.selectedIndex) }>
                             { accountSelect }
                         </select>
-                        {/* <SelectComponent 
-                            type="origin"
-                            selected={ akk[account.id] }
-                            options= { akk }
-                            onSelect={ (event, item) => { props.selectAccount(item.id) } }
-                            /> */}
                     </p>
                     <div className={ advancedSettingsButtonClassName }>
                         <a href="#" onClick={ event => this.toggleAdvanced(event) }>{ advancedSettingsButtonLabel }</a>
@@ -276,6 +267,9 @@ export default class SendComponent extends Component {
                                     <span>Set address from TREZOR</span>
                                 </button>
                             </span>
+                            <div className="verify-address-button" onClick={ () => props.verifyAddress(address) }>
+                                <div className="verify-address-tooltip">Show address on TREZOR</div>
+                            </div>
                             <span className="address-hint">
                                 { addressHint }
                             </span>

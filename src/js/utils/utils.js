@@ -54,3 +54,13 @@ export function isTrezorAccount(trezorAccounts, usedAccounts, address): boolean 
     }
     return false;
 }
+
+export function trezorAccountLabel(trezorAccounts, address): string {
+    let accounts = [...trezorAccounts];
+    for(let account of accounts) {
+        if(account.address === address) {
+            return account.name;
+        }
+    }
+    return "Account";
+}

@@ -10,17 +10,18 @@ const initalState = {
 };
 
 const accounts = [
-    { id: "btc1", name: "Bitcoin (1-address)", simpleName: "Bitcoin", short: "BTC", txType: "Bitcoin", bip44: [44, 0], addressVersion: 0, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
-    { id: "btc3", name: "Bitcoin (3-address)", simpleName: "Bitcoin", short: "BTC", txType: "Bitcoin", bip44: [49, 0], addressVersion: 5, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
-    { id: "btcM", name: "Bitcoin (M-address)", simpleName: "Bitcoin", short: "BTC", txType: "Bitcoin", bip44: [49, 0], addressVersion: 5, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
-    { id: "bch1", name: "Bitcoin Cash (1-address)", simpleName: "Bitcoin Cash", short: "BCH", txType: "Bcash", bip44: [44, 145], addressVersion: 0, bitcore: ['https://bch-bitcore2.trezor.io/'] },
-    { id: "ltc3", name: "Litecoin (3-address)", simpleName: "Litecoin", short: "LTC", txType: "Litecoin", bip44: [49, 2], addressVersion: 50, bitcore: ['https://ltc-bitcore1.trezor.io/', 'https://ltc-bitcore3.trezor.io/'] }
+    { id: "btc1", name: "bitcoin, 1-address", simpleName: "bitcoin", short: "BTC", txType: "Bitcoin", bip44: [44, 0], addressVersion: 0, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
+    { id: "btc3", name: "bitcoin, 3-address", simpleName: "bitcoin", short: "BTC", txType: "Bitcoin", bip44: [49, 0], addressVersion: 5, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
+    { id: "btcX", name: "bitcoin, wrongly generated 1-address (XPUB)", simpleName: "bitcoin", short: "BTC", txType: "Bitcoin", bip44: [49, 0], addressVersion: 0, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
+    { id: "btcM", name: "bitcoin, M-address", simpleName: "bitcoin", short: "BTC", txType: "Bitcoin", bip44: [49, 0], addressVersion: 5, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
+    { id: "bch1", name: "bitcoin cash, 1-address", simpleName: "bitcoin cash", short: "BCH", txType: "Bcash", bip44: [44, 145], addressVersion: 0, bitcore: ['https://bch-bitcore2.trezor.io/'] },
+    { id: "ltc3", name: "litecoin, 3-address", simpleName: "litecoin", short: "LTC", txType: "Litecoin", bip44: [49, 2], addressVersion: 50, bitcore: ['https://ltc-bitcore1.trezor.io/', 'https://ltc-bitcore3.trezor.io/'] }
 ];
 
 const fromAccounts = [
     accounts[1],
-    accounts[3],
-    accounts[4]
+    accounts[4],
+    accounts[5]
 ]
 
 const claimable = {
@@ -31,6 +32,7 @@ const claimable = {
     "btc3": [
         { id: "bch1" },
         { id: "ltc3"},
+        { id: "btcX" },
     ],
     "bch1": [
         { id: "btc1" },
@@ -118,7 +120,7 @@ export default class HomeComponent extends Component {
                 <fieldset>
                     
                     <p className="nl-form">
-                        <span>I have accidentally sent coins from a</span>
+                        <span>I have accidentally sent </span>
                         <SelectComponent 
                             type="origin"
                             useName="simpleName"
@@ -126,7 +128,7 @@ export default class HomeComponent extends Component {
                             options= { fromAccounts }
                             onSelect={ this.selectAccount.bind(this) }
                             />
-                        <span>account to a</span>
+                        <span> to a</span>
                         <SelectComponent 
                             type="destination"
                             selected={ destinationAccount }
