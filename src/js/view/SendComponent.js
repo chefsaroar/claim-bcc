@@ -77,8 +77,21 @@ export default class SendComponent extends Component {
     onAddressChange(event) {
         let value = event.currentTarget.value;
         let valid;
+        let network = this.props.originAccount.short === 'LTC' ? bitcoinjs.networks.litecoin : bitcoinjs.networks.bitcoin;
+        if (this.props.originAccount.short === 'BTG') {
+            network = {
+                messagePrefix: '\x18Bitcoin Gold Signed Message:\n',
+                bip32: {
+                    public: parseInt("0488b21e", 16),
+                    private: parseInt("0488ade4", 16),
+                },
+                pubKeyHash: 38,
+                scriptHash: 23,
+                wif: 0x80
+            }
+        }
         try {
-            valid = bitcoinjs.address.toOutputScript(value, this.props.originAccount.short === 'LTC' ? bitcoinjs.networks.litecoin : bitcoinjs.networks.bitcoin);
+            valid = bitcoinjs.address.toOutputScript(value, network);
         } catch ( error ) { }
 
         let fromTrezor = false;
@@ -206,7 +219,7 @@ export default class SendComponent extends Component {
             }
         }
 
-        var claimButtonLabel = `Recover ${ amoutToClaimString } ${ originAccount.short }`;
+        var claimButtonLabel = `Claim ${ amoutToClaimString } ${ originAccount.short }`;
         var amoutIsValid = true;
         if(amountToClaim < 0){
             amoutIsValid = false;
@@ -215,7 +228,7 @@ export default class SendComponent extends Component {
             formClassName += ' low-amount';
         }
         
-        let header = "Recover your Bitcoins";
+        let header = "Claiming Bitcoin Gold";
         if (originAccount.short === 'BCH') {
             header = "Recover your Bitcoin Cash";
         } else if (originAccount.short === 'LTC') {

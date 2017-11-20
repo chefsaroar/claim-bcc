@@ -10,38 +10,73 @@ const initalState = {
 };
 
 const accounts = [
-    { id: "btc1", name: "bitcoin, 1-address", simpleName: "bitcoin", short: "BTC", txType: "Bitcoin", bip44: [44, 0], addressVersion: 0, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
-    { id: "btc3", name: "bitcoin, 3-address", simpleName: "bitcoin", short: "BTC", txType: "Bitcoin", bip44: [49, 0], addressVersion: 5, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
-    { id: "btcX", name: "bitcoin, wrongly generated 1-address (XPUB)", simpleName: "bitcoin", short: "BTC", txType: "Bitcoin", bip44: [49, 0], addressVersion: 0, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
-    { id: "btcM", name: "bitcoin, M-address", simpleName: "bitcoin", short: "BTC", txType: "Bitcoin", bip44: [49, 0], addressVersion: 5, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
-    { id: "bch1", name: "bitcoin cash, 1-address", simpleName: "bitcoin cash", short: "BCH", txType: "Bcash", bip44: [44, 145], addressVersion: 0, bitcore: ['https://bch-bitcore2.trezor.io/'] },
-    { id: "ltc3", name: "litecoin, 3-address", simpleName: "litecoin", short: "LTC", txType: "Litecoin", bip44: [49, 2], addressVersion: 50, bitcore: ['https://ltc-bitcore1.trezor.io/', 'https://ltc-bitcore3.trezor.io/'] }
-];
+    { id: "btc1", name: "legacy account", simpleName: "bitcoin legacy", short: "BTC", txType: "Bitcoin", bip44: [44, 0], addressVersion: 0, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
+    { id: "btc3", name: "account", simpleName: "bitcoin", short: "BTC", txType: "Bitcoin", bip44: [49, 0], addressVersion: 5, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
+    // { id: "btcX", name: "bitcoin, wrongly generated 1-address (XPUB)", simpleName: "bitcoin", short: "BTC", txType: "Bitcoin", bip44: [49, 0], addressVersion: 0, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
+    // { id: "btcM", name: "bitcoin, M-address", simpleName: "bitcoin", short: "BTC", txType: "Bitcoin", bip44: [49, 0], addressVersion: 5, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
+    // { id: "bch1", name: "bitcoin cash, 1-address", simpleName: "bitcoin cash", short: "BCH", txType: "Bcash", bip44: [44, 145], addressVersion: 0, bitcore: ['https://bch-bitcore2.trezor.io/'] },
+    // { id: "ltc3", name: "litecoin, 3-address", simpleName: "litecoin", short: "LTC", txType: "Litecoin", bip44: [49, 2], addressVersion: 50, bitcore: ['https://ltc-bitcore1.trezor.io/', 'https://ltc-bitcore3.trezor.io/'] },
+    
+    { id: "btg1", name: "bitcoin gold legacy", simpleName: "bitcoin gold", short: "BTG", txType: "Bitcoin Gold", bip44: [49, 156], addressVersion: 5, bitcore: ['https://btg-bitcore2.trezor.io/'] },
+    { id: "btg3", name: "bitcoin gold", simpleName: "bitcoin gold", short: "BTG", txType: "Bitcoin Gold", bip44: [44, 156], addressVersion: 5, bitcore: ['https://btg-bitcore2.trezor.io/'] },
+    
+    //{ id: "btc2x1", name: "bitcoin2x, 1-address", simpleName: "bitcoin2x", short: "BTC", txType: "Bitcoin", bip44: [49, 0], addressVersion: 5, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
+    //{ id: "btc2x3", name: "bitcoin2x, 3-address", simpleName: "bitcoin2x", short: "BTC", txType: "Bitcoin", bip44: [49, 0], addressVersion: 5, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
+    //{ id: "btc2xX", name: "bitcoin2x, wrongly generated 1-address (XPUB)", simpleName: "bitcoin2x", short: "BTC", txType: "Bitcoin", bip44: [49, 0], addressVersion: 0, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
+    //{ id: "btc2xM", name: "bitcoin2x, M-address", simpleName: "bitcoin", short: "BTC", txType: "Bitcoin", bip44: [49, 0], addressVersion: 5, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
+ ];
 
 const fromAccounts = [
-    accounts[1],
-    accounts[4],
-    accounts[5]
+    //accounts[1],
+    //accounts[4],
+    //accounts[5],
+    accounts[2],
+    accounts[3],
 ]
 
 const claimable = {
     "btc1": [
         { id: "bch1" },
         { id: "ltc3" },
+        
     ],
     "btc3": [
         { id: "bch1" },
+        //{ id: "btc2x1" },
+        //{ id: "btc2x3" },
         { id: "ltc3"},
         { id: "btcX" },
+        //{ id: "btc2xX" },
     ],
     "bch1": [
         { id: "btc1" },
+        //{ id: "btc2x1" },
         { id: "btc3", possible: false },
+        { id: "btg", possible: false },
+        //{ id: "btc2x3", possible: false },
         { id: "ltc3", possible: false }
     ],
     "ltc3": [
         { id: "btc3" },
-        { id: "btcM" }
+        { id: "btcM" },
+        //{ id: "btc2x3" },
+        //{ id: "btc2xM" },
+    ],
+    // "btc2x1": [
+    //     { id: "btc1" },
+    //     { id: "btc3" },
+    //     { id: "ltc3" },
+    //     { id: "bch1" },
+    //     { id: "btcX" },
+    //     { id: "btc2xX" },
+    // ],
+    "btg1": [
+        { id: "btc1"},
+        { id: "btc3"},
+    ],
+    "btg3": [
+        { id: "btc3"},
+        { id: "btc1"},
     ]
 }
 
@@ -76,7 +111,7 @@ export default class HomeComponent extends Component {
         this.state = {
             ...initalState
         };
-        this.selectAccount("origin", fromAccounts[2]);
+        this.selectAccount("origin", fromAccounts[1]);
     }
 
     selectAccount(type, account) {
@@ -88,17 +123,21 @@ export default class HomeComponent extends Component {
                 destinationOptions: claimable
             });
         } else {
+            const claimable = findClaimableById('btg1');
             this.setState({
+                originAccount: account.id === 'btc1' ? accounts[2] : accounts[3],
                 destinationAccount: account,
             });
         }
+
+        // shitcoins for president
     }
 
     render(props) {
 
         const { originAccount, destinationAccount, destinationOptions } = this.state;
 
-        let button = (<button onClick={ () => { props.click(originAccount, destinationAccount) } } disabled={ !props.block }>Start recovering</button>);
+        let button = (<button onClick={ () => { props.click(originAccount, destinationAccount) } } disabled={ !props.block }>Connect with TREZOR</button>);
         let warning = null;
         if (destinationAccount.possible === false) {
             button = true;
@@ -112,7 +151,7 @@ export default class HomeComponent extends Component {
 
         return (
             <section className="component-home">
-                <h3>Recover your coins sent to a wrong address type</h3>
+                <h3>Claiming Bitcoin Gold</h3>
                 <Message
                     header="Reading of accounts failed."
                     error={ props.error }
@@ -120,15 +159,15 @@ export default class HomeComponent extends Component {
                 <fieldset>
                     
                     <p className="nl-form">
-                        <span>I have accidentally sent </span>
-                        <SelectComponent 
+                        <span>I want to claim my bitcoin golds from my bitcoin</span>
+                        {/* <SelectComponent 
                             type="origin"
                             useName="simpleName"
                             selected={ originAccount }
                             options= { fromAccounts }
                             onSelect={ this.selectAccount.bind(this) }
                             />
-                        <span> to a</span>
+                        <span> from </span> */}
                         <SelectComponent 
                             type="destination"
                             selected={ destinationAccount }
@@ -137,7 +176,8 @@ export default class HomeComponent extends Component {
                             />
                         <span>in my TREZOR.</span>
                     </p>
-                    {/* <p>This tool can help you recover your coins which were sent to wrong addresses generated by your TREZOR.</p> */}
+                    <p>This tool allows you to claim your Bitcoin Gold (BTG) from your TREZOR Wallet, assuming you had bitcoins (BTC) on your TREZOR before blockheight 491407 (around October 24).</p>
+                    <p>BTC and BTG are completely independent and separate currencies. A transaction sent on one chain will not affect the other one.<br/>This applies to this claim tool too; your BTC will not be affected.</p>
                     <div className="button-wrapper">
                         { warning }
                         { button }

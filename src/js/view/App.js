@@ -8,7 +8,7 @@ import { getBitcoinCashPathFromIndex, getSplitBlock } from '../utils/utils';
 import data from '../utils/data';
 
 
-const TREZOR_FIRMWARE = '1.5.1';
+const TREZOR_FIRMWARE = '1.6.0';
 
 export default class App extends Component {
 
@@ -55,9 +55,15 @@ export default class App extends Component {
                     
                     // filter available unspents
                     let availableUnspents = [];
+                    let lastBlockHeight = account.info.lastBlock.height;
                     for(let unspent of account.info.utxos){
-                        account.available += unspent.value;
-                        availableUnspents.push(unspent);
+                        // at least 1 confirmation
+                        if (lastBlockHeight - unspent.height > 0) {
+                            account.available += unspent.value;
+                            availableUnspents.push(unspent);
+                        } else {
+                            console.log("Not confirmed utxo", unspent);
+                        }
                     }
                     account.unspents = availableUnspents;
 
@@ -90,11 +96,17 @@ export default class App extends Component {
                 let trezorAddresses = [];
                 if(this.state.useTrezorAccounts){
                     for (let acc of response.originAddresses) {
+                        const usedAddressIndex: number = acc.info.usedAddresses.length;
                         trezorAddresses.push({ 
-                            address: acc.info.unusedAddresses[0], 
+                            address: acc.info.unusedAddresses[0],
+                            addressIndex: 0,
+                            unusedAddresses: acc.info.unusedAddresses,
+                            usedAddressIndex,
                             name: `Account #${(acc.id + 1)}`,
-                            path: acc.basePath.concat([0, acc.info.usedAddresses.length])
+                            basePath: acc.basePath,
+                            path: acc.basePath.concat([0, usedAddressIndex]),
                         });
+                        
                     }
                 }
 
@@ -122,7 +134,7 @@ export default class App extends Component {
 
     verifyAddress(address): void {
 
-        const { originAccount, accounts, activeAccount, trezorAccounts } = this.state;
+        const { originAccount, destinationAccount, accounts, activeAccount, trezorAccounts } = this.state;
 
         let index = -1;
         for (let [i, a] of trezorAccounts.entries()) {
@@ -135,7 +147,9 @@ export default class App extends Component {
         if (index >= 0) {
             const addr = trezorAccounts[index];
             const account = accounts[activeAccount];
-            const isSegwit = this.state.destinationAccount.id === 'btcX' ? true : account.segwit;
+            const isSegwit = destinationAccount.id === 'btcX' || originAccount.id.indexOf('btg') >= 0 ? true : account.segwit;
+
+            console.log("AAAA", isSegwit, originAccount)
             TrezorConnect.getAddress(addr.path, originAccount.txType, isSegwit, (response) => {
                 //console.log("TrezorConnect.getAddress response", response);
             });
@@ -171,6 +185,16 @@ export default class App extends Component {
         });
     }
 
+    findTrezorAccountByAddress(address: string): Object {
+        const { trezorAccounts } = this.state;
+        for (let [i, a] of trezorAccounts.entries()) {
+            if (a.address === address) {
+                return a;
+            }
+        }
+        return null;
+    }
+
     signTX(account: Object, address: number, amount: number): void {
         console.log("SignTx params", account, address, amount);
 
@@ -200,6 +224,15 @@ export default class App extends Component {
                         url: `${this.state.originAccount.bitcore[0]}tx/${hashHex}`,
                         hashHex: hashHex
                     }
+
+                    // update fresh address
+                    let currentTrezorAccount = this.findTrezorAccountByAddress(address);
+                    if (currentTrezorAccount.addressIndex + 1 < currentTrezorAccount.unusedAddresses.length) {
+                        currentTrezorAccount.addressIndex++;
+                        currentTrezorAccount.usedAddressIndex++;
+                    }
+                    currentTrezorAccount.address = currentTrezorAccount.unusedAddresses[ currentTrezorAccount.addressIndex ];
+                    currentTrezorAccount.path = currentTrezorAccount.basePath.concat([0, currentTrezorAccount.usedAddressIndex]),
 
                     // store tx in local storage
                     // window.localStorage.setItem(account.address, hashHex);
