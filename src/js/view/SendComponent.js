@@ -70,7 +70,7 @@ export default class SendComponent extends Component {
         this.setState({
             selectedFee: value,
             fee: calculateFee(this.props.account.unspents.length, 1, this.props.fees[ value ].maxFee)
-            //fee: calculateFee(this.props.account.unspents.length, 1, 12)
+            //fee: calculateFee(this.props.account.unspents.length, 1, 1)
         });
     }
 
@@ -295,7 +295,7 @@ export default class SendComponent extends Component {
                                 You can claim { satoshi2btc(account.available) } { originAccount.short }
                                 <div className="amount-tooltip">
                                     Due to the transaction size limitations, you cannot claim all your { originAccount.short } at once.<br/>
-                                    After this transaction, please run the tool again to claim the rest.
+                                    After this transaction, the tool will offer you to claim the rest.
                                 </div>
                             </span>
                         </p>

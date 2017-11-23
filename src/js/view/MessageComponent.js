@@ -20,7 +20,7 @@ export default class MessageComponent extends Component {
                 <article>
                     <h4>Transaction was successfully sent.</h4>
                     <p>
-                        <a href={ props.success.url } target="_blank">Check transaction details</a>
+                        Check <a href={ props.success.url } target="_blank">transaction details</a>
                     </p>
                 </article>
             );
