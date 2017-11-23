@@ -51,7 +51,7 @@ export default class SendComponent extends Component {
 
         let address = this.state.address;
         let addressIsValid = this.state.addressIsValid === undefined ? true : this.state.addressIsValid;
-        if (props.useTrezorAccounts && (this.state.address === undefined || this.state.accountId !== props.account.id)) {
+        if (props.useTrezorAccounts && (this.state.address === undefined || this.state.accountId !== props.account.id || this.state.address !== props.trezorAccounts[0].address)) {
             address = props.trezorAccounts[0].address;
             addressIsValid = true;
         }

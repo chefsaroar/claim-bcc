@@ -70,6 +70,7 @@ export default class App extends Component {
                             account.available += unspent.value;
                             availableUnspents.push(unspent);
                         } else {
+                            account.info.balance -= unspent.value;
                             console.log("Not confirmed utxo", unspent);
                         }
                     }
@@ -213,26 +214,52 @@ export default class App extends Component {
 
         TrezorConnect.closeAfterSuccess(false);
         TrezorConnect.setBitcoreURLS(this.state.originAccount.bitcore);
-        TrezorConnect.recoverSignTx(account, account.info.utxos, outputs, response => {
+        TrezorConnect.recoverSignTx(account, account.unspents, outputs, response => {
             console.log("SingTx", response)
-
             TrezorConnect.closeAfterSuccess(true);
             TrezorConnect.recoverPushTx(response.serialized_tx, pushResult => {
+            //let pushResult = { success: true, txid: '0' };
+
                console.log("pushTransaction", pushResult)
                if (pushResult.success) {
                     // update cached values for account
                     let hashHex = pushResult.txid;
                     let index = this.state.activeAccount;
                     let newAccounts = [ ...this.state.accounts ];
+                    let currentAccount = newAccounts[index];
                     if (account.inputLimitExceeded) {
-                        newAccounts[index].info.balance -= amount;
-                        newAccounts[index].available = 0;
+                        const total: number = account.unspents.reduce((t, r) => t + r.value, 0);
+                        currentAccount.info.balance -= total;
+                        currentAccount.available = 0;
+
+                        // remove used utxos
+                        currentAccount.info.utxos.splice(0, account.unspents.length);
+
+                        // recalculate available outputs
+                        let lastBlockHeight = currentAccount.info.lastBlock.height;
+                        let i, unspent, len = currentAccount.info.utxos.length;
+                        if (len > INPUT_LIMIT) {
+                            len = INPUT_LIMIT;
+                            account.inputLimitExceeded = true;
+                        } else {
+                            account.inputLimitExceeded = false;
+                        }
+                        
+                        let availableUnspents = [];
+                        for (i = 0 ; i < len; i++) {
+                            unspent = currentAccount.info.utxos[i];
+                            if (lastBlockHeight - unspent.height >= 0) {
+                                currentAccount.available += unspent.value;
+                                availableUnspents.push(unspent);
+                            }
+                        }
+                        currentAccount.unspents = availableUnspents;
                     } else {
-                        newAccounts[index].info.balance = 0;
-                        newAccounts[index].available = 0;
+                        currentAccount.info.balance = 0;
+                        currentAccount.available = 0;
                     }
                     
-                    newAccounts[index].transactionSuccess = {
+                    currentAccount.transactionSuccess = {
                         url: `${this.state.originAccount.bitcore[0]}tx/${hashHex}`,
                         hashHex: hashHex
                     }
