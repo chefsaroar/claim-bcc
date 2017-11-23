@@ -8,7 +8,8 @@ import { getBitcoinCashPathFromIndex, getSplitBlock } from '../utils/utils';
 import data from '../utils/data';
 
 
-const TREZOR_FIRMWARE = '1.6.0';
+const TREZOR_FIRMWARE: string = '1.6.0';
+const INPUT_LIMIT: number = 350;
 
 export default class App extends Component {
 
@@ -52,11 +53,18 @@ export default class App extends Component {
                     // ignore last empty account
                     account.name = `Account #${(account.id + 1)}`;
                     account.available = 0;
-                    
+
                     // filter available unspents
                     let availableUnspents = [];
                     let lastBlockHeight = account.info.lastBlock.height;
-                    for(let unspent of account.info.utxos){
+                    let i, unspent, len = account.info.utxos.length;
+                    if (len > INPUT_LIMIT) {
+                        len = INPUT_LIMIT;
+                        account.inputLimitExceeded = true;
+                    }
+
+                    for (i = 0 ; i < len; i++) {
+                        unspent = account.info.utxos[i];
                         // at least 1 confirmation
                         if (lastBlockHeight - unspent.height > 0) {
                             account.available += unspent.value;
@@ -148,8 +156,6 @@ export default class App extends Component {
             const addr = trezorAccounts[index];
             const account = accounts[activeAccount];
             const isSegwit = destinationAccount.id === 'btcX' || originAccount.id.indexOf('btg') >= 0 ? true : account.segwit;
-
-            console.log("AAAA", isSegwit, originAccount)
             TrezorConnect.getAddress(addr.path, originAccount.txType, isSegwit, (response) => {
                 //console.log("TrezorConnect.getAddress response", response);
             });
@@ -212,14 +218,20 @@ export default class App extends Component {
 
             TrezorConnect.closeAfterSuccess(true);
             TrezorConnect.recoverPushTx(response.serialized_tx, pushResult => {
-                console.log("pushTransaction", pushResult)
-                if (pushResult.success) {
+               console.log("pushTransaction", pushResult)
+               if (pushResult.success) {
                     // update cached values for account
                     let hashHex = pushResult.txid;
                     let index = this.state.activeAccount;
                     let newAccounts = [ ...this.state.accounts ];
-                    newAccounts[index].balance = 0;
-                    newAccounts[index].available = 0;
+                    if (account.inputLimitExceeded) {
+                        newAccounts[index].info.balance -= amount;
+                        newAccounts[index].available = 0;
+                    } else {
+                        newAccounts[index].info.balance = 0;
+                        newAccounts[index].available = 0;
+                    }
+                    
                     newAccounts[index].transactionSuccess = {
                         url: `${this.state.originAccount.bitcore[0]}tx/${hashHex}`,
                         hashHex: hashHex
@@ -232,7 +244,7 @@ export default class App extends Component {
                         currentTrezorAccount.usedAddressIndex++;
                     }
                     currentTrezorAccount.address = currentTrezorAccount.unusedAddresses[ currentTrezorAccount.addressIndex ];
-                    currentTrezorAccount.path = currentTrezorAccount.basePath.concat([0, currentTrezorAccount.usedAddressIndex]),
+                    currentTrezorAccount.path = currentTrezorAccount.basePath.concat([0, currentTrezorAccount.usedAddressIndex]);
 
                     // store tx in local storage
                     // window.localStorage.setItem(account.address, hashHex);
@@ -242,11 +254,12 @@ export default class App extends Component {
                         accounts: newAccounts,
                         error: null
                     });
+                    
                 } else {
                     window.scrollTo(0, 0);
                     console.error(pushResult.error);
                     this.setState({
-                        error: pushResult.error.message
+                        error: pushResult.error.message || pushResult.error
                     });
                 }
             });

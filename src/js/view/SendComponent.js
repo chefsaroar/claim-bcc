@@ -160,7 +160,7 @@ export default class SendComponent extends Component {
 
         // form values
         const accountSelect = props.accounts.map((account, index) => {
-            return (<option value={index}>{ account.name }  / { satoshi2btc(account.available) } { originAccount.short }</option>);
+            return (<option value={index}>{ account.name }  / { satoshi2btc(account.info.balance) } { originAccount.short }</option>);
         });
         
         const feeSelect = props.fees.map((fee, index) => 
@@ -187,6 +187,7 @@ export default class SendComponent extends Component {
         const advancedSettingsButtonClassName = `show-advanced-settings ${ advanced ? 'opened' : '' }`;
         const advancedSettingsButtonLabel = advanced ? 'Hide advanced settings' : 'Show advanced settings';
         const advancedSettingsClassName = `advanced-settings ${ advanced ? 'opened' : '' }`;
+        const amountHintClassName = `amount-hint ${ (account.info.balance !== account.available) ? 'warning' : '' }`;
 
         // target address validation
         var formClassName = useTrezorAccounts ? 'valid' : 'not-bch-account';
@@ -290,6 +291,13 @@ export default class SendComponent extends Component {
                         <p>
                             <label>Amount</label>
                             <input type="text" value={ amoutToClaimString } disabled />
+                            <span className={ amountHintClassName }>
+                                You can claim { satoshi2btc(account.available) } { originAccount.short }
+                                <div className="amount-tooltip">
+                                    Due to the transaction size limitations, you cannot claim all your { originAccount.short } at once.<br/>
+                                    After this transaction, please run the tool again to claim the rest.
+                                </div>
+                            </span>
                         </p>
                         <p>
                             <label>Fee</label>
