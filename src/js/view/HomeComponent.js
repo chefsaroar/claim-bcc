@@ -10,8 +10,8 @@ const initalState = {
 };
 
 const accounts = [
-    { id: "btc1", name: "legacy account", simpleName: "bitcoin legacy", short: "BTC", txType: "Bitcoin", bip44: [44, 0], addressVersion: 0, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
-    { id: "btc3", name: "account", simpleName: "bitcoin", short: "BTC", txType: "Bitcoin", bip44: [49, 0], addressVersion: 5, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
+    { id: "btc1", name: "Legacy account", simpleName: "bitcoin legacy", short: "BTC", txType: "Bitcoin", bip44: [44, 0], addressVersion: 0, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
+    { id: "btc3", name: "Standard account", simpleName: "bitcoin", short: "BTC", txType: "Bitcoin", bip44: [49, 0], addressVersion: 5, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
     // { id: "btcX", name: "bitcoin, wrongly generated 1-address (XPUB)", simpleName: "bitcoin", short: "BTC", txType: "Bitcoin", bip44: [49, 0], addressVersion: 0, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
     // { id: "btcM", name: "bitcoin, M-address", simpleName: "bitcoin", short: "BTC", txType: "Bitcoin", bip44: [49, 0], addressVersion: 5, bitcore: ['https://btc-bitcore1.trezor.io/', 'https://btc-bitcore3.trezor.io/'] },
     // { id: "bch1", name: "bitcoin cash, 1-address", simpleName: "bitcoin cash", short: "BCH", txType: "Bcash", bip44: [44, 145], addressVersion: 0, bitcore: ['https://bch-bitcore2.trezor.io/'] },
@@ -158,8 +158,11 @@ export default class HomeComponent extends Component {
                     hideError={ props.hideError } />
                 <fieldset>
                     
+                    
+                    <p>This tool allows you to claim your Bitcoin Gold (BTG) from your TREZOR Wallet, assuming you had bitcoins (BTC) on your TREZOR before blockheight 491407 (around October 24).</p>
+                    <p>BTC and BTG are completely independent and separate currencies. A transaction sent on one chain will not affect the other one.<br/>This applies to this claim tool too; your BTC will not be affected.</p>
                     <p className="nl-form">
-                        <span>I want to claim my bitcoin golds from my bitcoin</span>
+                        <span>Please select the type of your account to claim from:</span>
                         {/* <SelectComponent 
                             type="origin"
                             useName="simpleName"
@@ -174,10 +177,7 @@ export default class HomeComponent extends Component {
                             options= { destinationOptions }
                             onSelect={ this.selectAccount.bind(this) }
                             />
-                        <span>in my TREZOR.</span>
                     </p>
-                    <p>This tool allows you to claim your Bitcoin Gold (BTG) from your TREZOR Wallet, assuming you had bitcoins (BTC) on your TREZOR before blockheight 491407 (around October 24).</p>
-                    <p>BTC and BTG are completely independent and separate currencies. A transaction sent on one chain will not affect the other one.<br/>This applies to this claim tool too; your BTC will not be affected.</p>
                     <div className="button-wrapper">
                         { warning }
                         { button }
