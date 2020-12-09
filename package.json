@@ -36,7 +36,7 @@
         "json-loader": "^0.5.7",
         "less": "^2.7.2",
         "less-loader": "^4.0.5",
-        "open": "^0.0.5",
+        "open": "^6.0.0",
         "preact": "^8.2.1",
         "style-loader": "^0.18.2",
         "webpack": "^3.4.1",
